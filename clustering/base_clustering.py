@@ -1,8 +1,6 @@
 from typing import List
-import pandas as pd
 import time
 import streamlit as st
-import numpy as np
 from matplotlib import pyplot as plt, cm
 from sklearn.metrics import (
     silhouette_score, adjusted_rand_score,
@@ -11,7 +9,10 @@ from sklearn.metrics import (
 
 from clustering.evaluation.stability import stability_and_consensus
 
-
+import numpy as np
+import pandas as pd
+from sklearn.metrics import silhouette_samples
+from sklearn.metrics import pairwise_distances_argmin_min
 class BaseClustering:
     """
     Unified clustering factory.
@@ -23,10 +24,7 @@ class BaseClustering:
         labels = self.model.fit_predict(df) + 1
         return labels
 
-    import numpy as np
-    import pandas as pd
-    from sklearn.metrics import silhouette_samples
-    from sklearn.metrics import pairwise_distances_argmin_min
+
 
     def get_representatives(self, df_pivot: pd.DataFrame):
         """
@@ -276,7 +274,7 @@ class BaseClustering:
             ax1.set_ylim([0, len(df_pivot) + (n_clusters + 1) * 10])
             # Initialize the clusterer with n_clusters value and a random generator
             # seed of 10 for reproducibility.
-            kwargs['n_cluster'] = n_clusters
+            kwargs['n_clusters'] = n_clusters
             clusterer = cls(**kwargs)
             cluster_labels = clusterer.fit_predict(df_pivot)
 

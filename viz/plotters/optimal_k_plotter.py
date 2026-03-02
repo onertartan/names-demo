@@ -20,6 +20,7 @@ METRIC_OBJECTIVES = {
 }
 
 class OptimalKPlotter:
+    @staticmethod
     def plot_optimal_k_analysis(
             engine_class,
             num_seeds_to_plot,
@@ -139,9 +140,17 @@ class OptimalKPlotter:
         fig.tight_layout(pad=2.5)
         st.pyplot(fig)
 
+    @staticmethod
+    def print_optimal_k_analysis(df_summary):
+        col1, col2 = st.columns(2)
+        col1.write("Formatted results")
+        col1.dataframe(OptimalKPlotter.style_metrics_dataframe(df_summary))
+        col2.write("Raw results")
+        col2.dataframe(df_summary)
+
+    @staticmethod
     def style_metrics_dataframe(df: pd.DataFrame):
         display = pd.DataFrame(index=df.index)
-
         def mean_pm_std(mean_col_, std_col, prec=3):
             return (
                     df[mean_col_].map(lambda x: f"{x:.{prec}f}") +

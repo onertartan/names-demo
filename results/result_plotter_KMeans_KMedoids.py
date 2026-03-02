@@ -53,10 +53,16 @@ def plot_k_analysis(genders,engines, METRICS, pattern_map, scaler_labels,title_w
                             df[metric] + df[metric.replace("_mean", "_std")],
                             alpha=0.15
                         )
-                # Titles only on first row
-                ax.set_ylabel(metric, fontsize=12)
+                 # Titles only on first row
+                ylabel = "Mean ARI" if metric=="ARI_mean" else metric
+                ax.set_ylabel(ylabel, fontsize=12)
                 # Engine label only on first column
-                ax.set_title(f"{engine_label}\n{ylabel} for {gender} dataset")
+                if gender =="both genders":
+                    dataset_name = "combined dataset"
+                else:
+                    dataset_name = gender + " dataset"
+
+                ax.set_title(f"{engine_label}\n{ylabel} for {dataset_name}")
                 ax.set_xlabel("Number of clusters (k)")
                 ax.grid(alpha=0.3)
                 ax.set_ylim(0, 1.02)
@@ -73,7 +79,7 @@ def plot_k_analysis(genders,engines, METRICS, pattern_map, scaler_labels,title_w
 
     # ---- shared legend ----
     handles, labels = axes[0, 0].get_legend_handles_labels()
-    fig.suptitle(f"Sensitivity of K-Means and K-Medoids clustering {title_word} to normalization schemes", fontsize=14)
+    fig.suptitle(f"Sensitivity of K-Means and K-Medoids {title_word.capitalize()} to Cluster Resolution and Data Normalization", fontsize=14)
     return fig
 
 def save_max_silhouette (gender,engine, pattern_map):
@@ -90,7 +96,11 @@ def save_max_silhouette (gender,engine, pattern_map):
         sort_by_cols= ["k","Silhouette_mean (cosine)", "Silhouette_mean (euclidean)", "ARI_mean"]
     df_best=df.sort_values(by=sort_by_cols, ascending=[True, False, False, False]).groupby("k", as_index=False).first()
     df_best.set_index("k", inplace=True)
-    df_best.round(2).T.to_csv(f"files/{gender}/{engine[0]}.csv", index=True)
+    df=df.sort_values(by=sort_by_cols, ascending=[True, False, False, False])
+    df.set_index("k", inplace=True)
+    df.round(2).to_csv(f"files/{gender}/{engine[0]}.csv", index=True)
+
+    df_best.round(2).T.to_csv(f"files/{gender}/{engine[0]}_best.csv", index=True)
     return df_best
 
 scaler_labels = {"Share of Top 30 (L1 Norm)": "L1 (Top 30)", "Share of Total": "Share (All)", "TF-IDF": "TF–IDF", "L2 Normalization": "L2"}
@@ -107,7 +117,7 @@ genders= ["both genders"]
 
 
 fig = plot_k_analysis(genders,engines, METRICS, pattern_map, scaler_labels,"stability")
-fig.savefig(f"files/stability-{engines[0][1]}-{engines[1][1]}.png", dpi=300, bbox_inches="tight")
+fig.savefig(f"files/stability_{engines[0][1]}_{engines[1][1]}.png", dpi=300, bbox_inches="tight")
 
 plt.show()
 METRICS = [("Silhouette_mean (cosine)", "Clustering seperability vs number of clusters", "Seperability","solid"),

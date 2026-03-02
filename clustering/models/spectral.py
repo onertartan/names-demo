@@ -51,7 +51,9 @@ class SpectralClusteringEngine(BaseClustering):
         ):
         affinity = model_kwargs["affinity"]
         saved_file_suffix = f"{affinity}_{saved_file_suffix}"
-        n_range = range(4, 11) #if self.affinity == "nearest_neighbors" else range(1, 2)
+        #n_range = range(4, 15,2) #if self.affinity == "nearest_neighbors" else range(1, 2)
+        n = st.session_state["n_neighbors_spectral"]
+        n_range = range(n,n+1)
         for n in n_range:
             model_kwargs["n_neighbors"] = n
             df_summary, metrics_all, metrics_mean, ari_mean, ari_std, consensus_labels_all = super().optimal_k_analysis(

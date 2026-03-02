@@ -21,7 +21,7 @@ def scale(scaler_method, df, total_counts):
         df_scaled = normalize(df, axis=1, norm="l2")
 
     elif "Share of Total" in scaler_method:
-        # Share of all births (not just top-k)
+        # Share of all births (not just top-n)
         total_counts_unique = total_counts.groupby(level=0).first()
         df_scaled = df.div(total_counts_unique, axis=0)
 

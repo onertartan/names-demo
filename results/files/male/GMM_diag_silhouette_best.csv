@@ -1,0 +1,5 @@
+,0,1,2,3,4,5,6,7,8,9,10,11,12
+Silhouette_mean (cosine),0.521,0.368,0.352,0.33,0.36,0.331,0.32,0.295,0.277,0.263,0.255,0.253,0.251
+Silhouette_mean (euclidean),0.336,0.21,0.198,0.195,0.202,0.19,0.185,0.171,0.16,0.152,0.146,0.145,0.143
+ARI_mean,1.0,1.0,0.925,0.983,0.965,0.912,0.85,0.754,0.685,0.645,0.592,0.602,0.581
+scaler,Share of Top 30 (L1 Norm),Share of Top 30 (L1 Norm),Share of Total,Share of Total,Share of Total,Share of Total,Share of Total,Share of Total,Share of Total,Share of Total,Share of Total,Share of Total,Share of Total

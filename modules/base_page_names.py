@@ -1,3 +1,4 @@
+from collections import defaultdict
 from adjustText import adjust_text
 
 from clustering.scaling import scale
@@ -9,24 +10,37 @@ from matplotlib import colormaps, pyplot as plt, cm
 import locale
 import plotly.express as px
 from matplotlib.patches import Patch
-import extra_streamlit_components as stx
 import altair as alt
 from viz.config import COLORS, CLUSTER_COLOR_MAPPING, VA_POSITIONS, HA_POSITIONS
 from viz.color_mapping import create_cluster_color_mapping
+from viz.gui_helpers.ui_base_page import province_selector, sidebar_controls_basic_setup, figure_setup
+from viz.gui_helpers.ui_base_page_names import render_tab_selection, render_gender_name_surname_filters, \
+    render_top_n_selector, sidebar_controls_plot_options_setup
+
 locale.setlocale(locale.LC_ALL, 'tr_TR.utf8')
 
-
 class PageNames(BasePage):
-
-    def sidebar_controls_plot_options_setup(self, *args):
-        sidebar = st.sidebar
-        if st.session_state.get("selected_tab_" + self.page_name, "map") == "map":
-            st.session_state["visualization_option"] = sidebar.radio("Choose visualization option",  ["Matplotlib", "Folium"]).lower()
 
     def initialize_multiindex_gdf_clusters(self, df: pd.DataFrame, year: object) -> None:
         new_index = pd.MultiIndex.from_product([[year], df.index], names=["year", "city"])
         self.gdf_clusters = df.copy()
         self.gdf_clusters.index = new_index
+
+    def preprocessing_initial_filtering(self,name_surname_selection,selected_years,gender_list_state_key):
+        # ---   Apply Filter ---
+        # Only filter by gender if we are looking at names
+        df = self.data[name_surname_selection.lower()]
+        top_n_names = render_top_n_selector()
+        selected_provinces = province_selector(df.index.get_level_values("province").unique().tolist())
+        idx = pd.IndexSlice
+        df = df.loc[idx[selected_years, selected_provinces], :]
+        df = df[df["rank"] <= top_n_names]  # use top-n for clustering (n=30 for all)
+
+        if name_surname_selection != "surname":
+            # Ensure the column 'sex' exists before filtering
+            if 'sex' in df.columns:
+                df = df[df['sex'].isin(st.session_state[gender_list_state_key])]
+        return df
 
     def preprocess_clustering(self, df):
         """"
@@ -35,27 +49,36 @@ class PageNames(BasePage):
         year = df.index.get_level_values(0).unique() # year(s)
         page_name = self.page_name
         # top_n = st.session_state["n_" + page_name]  # CANCELED : NOW ALL 30 FEATURES ARE USE IN K-MEANS
+        df_year = df.loc[year]
         if page_name == "names_surnames" and "name_surname_rb" in st.session_state and st.session_state["name_surname_rb"] == "surname":
             df_year = df.loc[year]
-        #     df_year = df_year[df_year["rank"] <= top_n]  # use top-n for clustering (n=30 for all)
         elif st.session_state["sex_" + page_name] == ["male", "female"]:  # if both sexes are selected
             df_year_male, df_year_female = df[df["sex"] == "male"].loc[year], df[df["sex"] == "female"].loc[year]
             #     df_year_male = df_year_male[df_year_male["rank"] <= top_n]
             #    df_year_female = df_year_female[df_year_female["rank"] <= top_n]
+            st.header("df_year_male shape:"+str(df_year_male.head()))
+            st.header("Unique male names"+str(df_year_male["name"].nunique()))
+            st.header("Unique female names"+str(df_year_female["name"].nunique()))
+
+            st.header("df_year_female shape:"+str(df_year_female.shape))
+
             overlapping_names = set(df_year_male["name"]) & set(df_year_female["name"])
             df_year_male['name'] = df_year_male.apply(
                 lambda x: f"{x['name']}_female" if x['name'] in overlapping_names else x['name'], axis=1)
             df_year_female['name'] = df_year_female.apply(
                 lambda x: f"{x['name']}_male" if x['name'] in overlapping_names else x['name'], axis=1)
             df_year = pd.concat([df_year_male, df_year_female])
-        else:  # single gender selected for names
-            sex = st.session_state["sex_" + page_name]
-            df_year = df[df["sex"].isin(sex)].loc[year]
+     #   else:  # single gender selected for names  # gender selection handled in preprocessing_initial now
+     #       sex = st.session_state["sex_" + page_name]
+     #       df_year = df[df["sex"].isin(sex)].loc[year]
         if isinstance(df_year.index, pd.MultiIndex):  # If applying temporal clustering (multiple years given as year)
+             print("bebe",df_year.head())
              df_year = df_year.droplevel(0)  # Drop the first level year(position 0)
+
           # Get unique cumulative total counts over years(for each province)
         total_counts = df[["total_count"]].groupby(level=["year", "province"]).first()
         total_counts = total_counts.groupby("province").sum()
+
         df_year = df_year.groupby([df_year.index, 'name']).agg({'count': 'sum'})
         # Merge
         df_year = df_year.merge(total_counts, left_index=True, right_index=True, how="outer")
@@ -113,166 +136,16 @@ class PageNames(BasePage):
                 df.loc[year, 'rank'] = df.loc[year, 'count'].rank(axis=0, method='min', ascending=False)
 
         if "rank" in st.session_state["selected_tab_" + self.page_name]:
-            print("74112",st.session_state["include_all_years"])
-            print("887766",st.session_state["include_all_years"] == "Include All Years for Names Ever in Top-n")
             # preprocess rank
             if st.session_state["include_all_years"] == "Include All Years for Names Ever in Top-n":
                 selected_names = df[df['rank'] <= st.session_state["rank_" + self.page_name]]["name"]
                 df = df[df["name"].isin(selected_names)]
             else:
                 df = df[df['rank'] <= st.session_state["rank_" + self.page_name]]
-
         else:  # st.session_state["selected_tab" + cls.page_name] == "custom_bar":
             selected_names = st.session_state["names_" + self.page_name]
             df = df[df["name"].isin(selected_names)]
         return df
-
-    def render_gender_name_surname_filters(self):
-        """ Common helper function for rendering
-         'Names and Surnames' page and 'Baby Names' pages
-        """
-        col_1, col_2 = st.columns([1, 8])
-        name_surname_selection = "name"
-        # data is a dictionary whose keys are names and surnames, values are corresponding dataframes
-        # --- 1. Name/Surname Selection ---
-        if self.page_name == "names_surnames":
-            # Using a key here is good practice
-            name_surname_selection = col_2.radio(
-                "Select name or surname",
-                ["Name", "Surname"],
-                key="name_surname_selection"
-            ).lower()
-            st.session_state["name_surname_rb"] = name_surname_selection
-
-        # --- 2. Date Filtering ---
-        # Ensure year_1 and year_2 exist in session state
-        selected_years = range(st.session_state["year_1"], st.session_state["year_2"] + 1)
-
-        # --- 3. Gender Selection Logic ---
-        disable = (name_surname_selection == "surname")
-
-        # Define keys for clarity
-        gender_list_state_key = "sex_" + self.page_name
-        widget_key = "gender_radio_widget_" + self.page_name
-
-        # 1. One-time Initialization
-        # If the widget hasn't been initialized yet, set its initial value
-        # based on the existing list data (if any).
-        if widget_key not in st.session_state:
-            # Default to "Both"
-            initial_val = "Both genders"
-            # If we have previous list data, sync the widget to match it
-            if gender_list_state_key in st.session_state:
-                current_list = st.session_state[gender_list_state_key]
-                if current_list == ["male"]:
-                    initial_val = "Male"
-                elif current_list == ["female"]:
-                    initial_val = "Female"
-
-            st.session_state[widget_key] = initial_val
-
-        # 2. Render Widget
-        gender_selection = col_1.radio("Select Gender", ["Both genders", "Male", "Female"], key=widget_key,label_visibility="collapsed",disabled=disable )
-        # 3. Update the Data List based on the Widget's new value
-        if gender_selection == "Male":
-            st.session_state[gender_list_state_key] = ["male"]
-        elif gender_selection == "Female":
-            st.session_state[gender_list_state_key] = ["female"]
-        else:
-            st.session_state[gender_list_state_key] = ["male", "female"]
-
-        # --- 4. Override for Surnames ---
-        # If surname is selected, we force both genders (or ignore gender column)
-        if disable:
-            st.session_state[gender_list_state_key] = ["male", "female"]
-
-        return name_surname_selection, selected_years, gender_list_state_key
-
-    import streamlit as st
-    from typing import List, Optional
-
-
-
-    def province_selector(
-            self,
-            all_provinces,
-            key_prefix: str = "province",
-            default_excluded: Optional[List[str]] = None
-    ) -> List[str]:
-        """
-        Ultra-compact province selector using only exclusion.
-
-        Args:
-            key_prefix: Unique prefix for session state keys and widget IDs
-            all_provinces: Complete list of all provinces
-            default_excluded: Provinces to exclude by default on first load
-
-        Returns:
-            List of currently selected provinces (all minus excluded)
-        """
-        # Session state initialization
-        if f"{key_prefix}_excluded" not in st.session_state:
-            if default_excluded is not None:
-                st.session_state[f"{key_prefix}_excluded"] = default_excluded.copy()
-            else:
-                st.session_state[f"{key_prefix}_excluded"] = []
-
-        excluded_key = f"{key_prefix}_excluded"
-
-        # Tek bir searchable multiselect ile hariç tutma
-        st.markdown("**Province Selection**")
-
-        col_header = st.columns([3, 1])
-        with col_header[0]:
-            st.caption("Exclude provinces from analysis (all others are included)")
-        with col_header[1]:
-            if st.button("Clear", key=f"{key_prefix}_clear_btn", type="secondary"):
-                st.session_state[excluded_key] = []
-                st.rerun()
-
-        # Searchable multiselect with better UX
-        excluded = st.multiselect(
-            "Exclude provinces:",
-            options=all_provinces,
-            default=st.session_state[excluded_key],
-            key=f"{key_prefix}_exclude_compact",
-            label_visibility="collapsed",
-            placeholder="Search and select provinces to exclude..."
-        )
-
-        if excluded != st.session_state[excluded_key]:
-            st.session_state[excluded_key] = excluded.copy()
-            st.rerun()
-
-        # Calculate final selected (all minus excluded)
-        final_selected = [p for p in all_provinces if p not in st.session_state[excluded_key]]
-
-        # Mini summary
-        st.caption(f"**{len(final_selected)}** provinces selected, **{len(st.session_state[excluded_key])}** excluded")
-
-        return final_selected
-
-
-    def render_tab_selection(self):
-       # if "selected_tab" not in st.session_state:
-        #    st.session_state["selected_tab_"+self.page_name] = "map"
-        tabs_main = [stx.TabBarItemData(id="tab_main_clustering", title="Clustering Tabs", description=""),
-                stx.TabBarItemData(id="tab_main_plot", title="Plots Tab", description="")
-                ]
-        tab_main_selected = stx.tab_bar(data=tabs_main, default="tab_main_clustering")
-
-        if tab_main_selected == "tab_main_clustering":
-            tabs = [stx.TabBarItemData(id="tab_geo_clustering", title="Geographical Clustering", description=""),
-                    stx.TabBarItemData(id="tab_name_clustering", title="Name Clustering", description="") ]
-            st.session_state["selected_tab_"+self.page_name] = stx.tab_bar(data=tabs, default="tab_geo_clustering")
-        else:
-            tabs = [ stx.TabBarItemData(id="tab_map", title="Map Plot", description=""),
-                    stx.TabBarItemData(id="rank_bump", title="Rank Bump Plot", description=""),
-                    stx.TabBarItemData(id="rank_bar", title="Rank Bar Plot", description=""),
-                    stx.TabBarItemData(id="custom_bar", title="Custom Name Bar Plot", description="")]
-            st.session_state["selected_tab_" + self.page_name] = stx.tab_bar(data=tabs, default="tab_map")
-
-        return st.session_state["selected_tab_"+self.page_name]
 
     def render(self):
         # Apply CSS to all radio groups except the first
@@ -280,22 +153,11 @@ class PageNames(BasePage):
         header = "Names & Surnames Analysis" if self.page_name == "names_surnames" else "Baby Names Analysis"
         st.header(header)
         start_year, end_year = self.data["name"].index.get_level_values(0).min(), self.data["name"].index.get_level_values(0).max()
-        self.sidebar_controls(start_year, end_year)
-        name_surname_selection, selected_years, gender_list_state_key = self.render_gender_name_surname_filters()
-        # ---   Apply Filter ---
-        # Only filter by gender if we are looking at names
-        df = self.data[name_surname_selection.lower()]
-        selected_provinces = self.province_selector(df.index.get_level_values("province").unique().tolist())
-
-        idx = pd.IndexSlice
-        df = df.loc[idx[selected_years,selected_provinces], :]
-        if name_surname_selection != "surname":
-            # Ensure the column 'sex' exists before filtering
-            if 'sex' in df.columns:
-                df = df[df['sex'].isin(st.session_state[gender_list_state_key])]
-
-
-        tab_selected = self.render_tab_selection()
+        sidebar_controls_basic_setup(start_year, end_year)
+        sidebar_controls_plot_options_setup(self.page_name)
+        name_surname_selection, selected_years, gender_list_state_key = render_gender_name_surname_filters(self.page_name)
+        df = self.preprocessing_initial_filtering(name_surname_selection, selected_years, gender_list_state_key)
+        tab_selected = render_tab_selection(self.page_name)
         col_1, col_2, col_3, col_4, _ = st.columns([1, 1, 1, 1, 1])
 
         # if "display_option_"+self.page_name not in st.session_state:
@@ -426,7 +288,7 @@ class PageNames(BasePage):
         title, names_or_surnames = self.create_title_for_plot(n)
         df_results = []
         year_1, year_2 = st.session_state["year_1"], st.session_state["year_2"]
-        fig, axs = self.figure_setup()
+        fig, axs = figure_setup()
         for i, year in enumerate(sorted({year_1, year_2})):
             # Display option 1: Show the nth most common baby names
             if display_option == "nth most common":
@@ -583,7 +445,6 @@ class PageNames(BasePage):
         ax.grid(True, alpha=0.3)
         ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
         # Add data labels for first and last year
-        from collections import defaultdict
 
         # Compute offsets to reduce overlapping texts
         y_offset_tracker_first = defaultdict(int)
@@ -611,7 +472,6 @@ class PageNames(BasePage):
     # Tab-2 plot method (potential alternative using plotly)
     def plot_rank_bump_plotly(self, df, col_plot):
         # 2nd tab: Bump chart using plotly (alternative not used yet)
-
         # Prepare data in long format (from your pivot table)
         max_rank = int(df["rank"].max())
 
@@ -682,7 +542,6 @@ class PageNames(BasePage):
     # Tab-2.3 & 2.4 plot methods
     def plot_rank_bar(self, df, col_plot):
         # 3rd tab & 4th tab: Bar plot for ranking and custom names
-        print("5555",df)
         df = df.reset_index()
         chart = alt.Chart(df).mark_bar().encode(
             x=alt.X('year:O', title='Year'),
@@ -694,11 +553,11 @@ class PageNames(BasePage):
         title = {  # Add title configuration
             "text": f"Frequency of {self.get_title_statement()} by Year",  # Title text
             "anchor": "middle",  # Center the title
-            "dy": 10,  # Adjust vertical spacing (positive = move down)
-            "fontSize": 20  # Adjust font size
+            "dy": 4,  # Adjust vertical spacing (positive = move down)
+            "fontSize": 28  # Adjust font size
         }
-        ).configure_header(
+        ).configure_header(labelFontSize=16,
             titleFontSize=24,  # Increase font size for column titles (names)
-        )
-
+        ).configure_axisX(labelFontSize=16, titleFontSize=16).configure_axisY(labelFontSize=16, titleFontSize=16)
+        chart.save("temp/rank_bar.png", scale_factor=3)
         col_plot.altair_chart(chart)

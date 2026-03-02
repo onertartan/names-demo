@@ -94,8 +94,7 @@ class GeoClusterPlotter:
                                 edgecolor="black", linewidth=1.5,
                                 label="Cluster representatives")
             ax.legend(loc="upper right", fontsize=6)
-
-        fig.savefig(f"temp/{title}.png", dpi=300, bbox_inches="tight")
+        fig.savefig(f"temp/result.png", dpi=300, bbox_inches="tight")
         st.pyplot(fig)
 
     def plot_elections(self, gdf_clusters):

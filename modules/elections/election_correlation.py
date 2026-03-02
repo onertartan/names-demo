@@ -7,7 +7,7 @@ import  streamlit as st
 import pandas as pd
 import seaborn as sns
 import matplotlib.colors as mcolors
-from viz.gui_helpers.gui_common_pages_basic_setup import gui_basic_setup
+from viz.gui_helpers.ui_base_page_common import gui_basic_setup
 
 
 class ElectionCorrelation(PageCommon):
@@ -22,10 +22,6 @@ class ElectionCorrelation(PageCommon):
           #   'high school or equivalent', 'pre-license or bachelor degree', 'master degree', 'phd', 'unknown'])    }
     col_weights = [1, 4, 2, .1, 6.8, .1, .1]
 
-
-    def fun_extras(self):
-        st.radio("Options for selection of primary parameters for correlation calculation", ["Aggregate", "Education", "Age"],
-                  key="correlation_selection")
 
     @staticmethod  # Add this
     @st.cache_data
@@ -50,7 +46,9 @@ class ElectionCorrelation(PageCommon):
 
     def render(self):
         df_sex_age_edu, df_election = self.get_data()
-        self.fun_extras()
+        st.radio("Options for selection of primary parameters for correlation calculation",
+                 ["Aggregate", "Education", "Age"],
+                 key="correlation_selection")
         cols_nom_denom = gui_basic_setup(self.col_weights)
         year = self.sidebar_controls_basic_setup()
 

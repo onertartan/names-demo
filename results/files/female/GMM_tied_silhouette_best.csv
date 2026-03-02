@@ -1,0 +1,5 @@
+,0,1,2,3,4,5,6,7,8,9,10,11,12
+Silhouette_mean (cosine),0.532,0.466,0.344,0.29,0.256,0.231,0.216,0.208,0.205,0.201,0.2,0.198,0.197
+Silhouette_mean (euclidean),0.334,0.279,0.194,0.167,0.147,0.132,0.125,0.12,0.118,0.117,0.116,0.115,0.114
+ARI_mean,1.0,0.762,0.707,0.726,0.571,0.524,0.594,0.527,0.523,0.511,0.501,0.493,0.476
+scaler,TF-IDF,Share of Top 30 (L1 Norm),Share of Top 30 (L1 Norm),TF-IDF,TF-IDF,TF-IDF,L2 Normalization,L2 Normalization,L2 Normalization,L2 Normalization,L2 Normalization,L2 Normalization,L2 Normalization

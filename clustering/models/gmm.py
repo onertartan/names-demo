@@ -36,6 +36,7 @@ class GMMEngine(BaseClustering):
             random_state=random_state
         )
         self.metric_for_silhouette = "euclidean"
+
     @classmethod
     def optimal_k_analysis(cls,
         df: pd.DataFrame,

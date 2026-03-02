@@ -1,0 +1,5 @@
+,0,1,2,3,4,5,6,7,8
+Silhouette_mean (cosine),0.514,0.345,0.279,0.278,0.257,0.24,0.231,0.222,0.22
+Silhouette_mean (euclidean),0.312,0.191,0.155,0.158,0.148,0.141,0.137,0.132,0.13
+ARI_mean,1.0,1.0,0.996,0.859,0.672,0.621,0.628,0.603,0.567
+scaler,Share of Total,Share of Total,Share of Total,Share of Total,Share of Total,Share of Total,Share of Total,Share of Total,Share of Total

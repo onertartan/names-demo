@@ -28,22 +28,31 @@ METRIC = "ARI_mean"
 
 
 def _parse_gmm_filename(fname: Path):
-    m = re.match(r"(.+?)_(diag|tied|spherical)_(\d{4}_\d{4})\.csv$", fname.name)
-    if m is None:
+    name = fname.name
+    if name.startswith("consensus_labels_all_"):
         return None
-    return m.group(1), m.group(2), m.group(3)
+
+    m = re.match(r"(diag|tied|spherical)_(.+)_(\d{4}_\d{4})\.csv$", name)
+    if m:
+        return m.group(1), m.group(2), m.group(3)
+
+    m = re.match(r"(.+)_(diag|tied|spherical)_(\d{4}_\d{4})\.csv$", name)
+    if m:
+        return m.group(2), m.group(1), m.group(3)
+
+    return None
 
 
-def load_gmm_results():
-    data_dir = Path("files/GMMEngine")
+def load_gmm_results(data_dir):
+    data_dir = Path(data_dir)
     dfs = []
-
     for f in data_dir.glob("*.csv"):
         parsed = _parse_gmm_filename(f)
         if parsed is None:
             continue
 
-        scaler, cov, year_range = parsed
+      #  scaler, cov, year_range = parsed
+        cov, scaler, year_range = parsed
         df = pd.read_csv(f)
 
         if "Number of clusters" in df.columns:
@@ -66,12 +75,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def plot_gmm_k_analysis_one_row(
+    main_data_dir,
     metric="ARI_mean",
-    ylabel="Clustering stability (ARI)",
+    ylabel="Mean ARI",
     covariances=("diag", "tied", "spherical"),
     colors=None,
     linewidth=2.0,
     marker="o"
+    ,title_word=""
 ):
     """
     Plot GMM stability results in a 1×3 row:
@@ -83,7 +94,8 @@ def plot_gmm_k_analysis_one_row(
     df_all : pd.DataFrame
         Must contain columns: ['k', metric, 'scaler', 'covariance'].
     """
-    df_all= load_gmm_results()
+    data_dir = main_data_dir +"/GMMEngine/"
+    df_all= load_gmm_results(data_dir)
     fig, axes = plt.subplots(
         nrows=1,
         ncols=3,
@@ -141,21 +153,15 @@ def plot_gmm_k_analysis_one_row(
         frameon=True,
     )
 
-    fig.suptitle(
-        "Sensitivity of Gaussian Mixture Model clustering stability to covariance structure",
-        fontsize=13
-    )
-    fig.savefig("files/stability_gmm.png", dpi=300, bbox_inches="tight")
-
+    fig.suptitle(f"Sensitivity of Gaussian Mixture Model {title_word.capitalize()} to Covariance Structure, Cluster Resolution and Data Normalization", fontsize=13)
+    fig.savefig(f"{main_data_dir}/stability_gmm.png", dpi=300, bbox_inches="tight")
     return fig
 
-# Example usage:
-fig = plot_gmm_k_analysis_one_row()
-plt.show()
 
+def save_max_silhouette_per_geometry(main_data_dir):
 
-def save_max_silhouette_per_geometry():
-    dfs = load_gmm_results()
+    dfs = load_gmm_results(main_data_dir+ "/GMMEngine")
+
     for cov in ["diag", "tied", "spherical"]:
         df = dfs[dfs["covariance"] == cov]
         # choose the correct silhouette column
@@ -165,15 +171,22 @@ def save_max_silhouette_per_geometry():
 
 
         df_best=df.sort_values(by=["k", columns[0]],ascending=[True, False]).groupby("k", as_index=False).first()
-        columns = ["Silhouette_mean (cosine)", "Silhouette_mean (euclidean)", "scaler"]
-        df_best=df_best[columns].round(2).T
-        df_best.to_csv(f"files/GMM_{cov}_silhouette_best.csv")
+        columns = ["Silhouette_mean (cosine)", "Silhouette_mean (euclidean)", "ARI_mean","scaler"]
+        df_best=df_best[columns].round(3).T
+        df_best.to_csv(f"{main_data_dir}/GMM_{cov}_silhouette_best.csv")
         df=df.set_index("k")
-        df=df.sort_values(by=["k", "Silhouette_mean (cosine)", "Silhouette_mean (euclidean)"], ascending=[True, False,False])
-        df.to_csv(f"files/GMM_{cov}_silhouette.csv")
+        df=df.sort_values(by=["k", "Silhouette_mean (cosine)", "Silhouette_mean (euclidean)","ARI_mean"], ascending=[True, False,False,False])
+        df.to_csv(f"{main_data_dir}/GMM_{cov}_silhouette.csv")
 
     #    df_best = df.sort_values(by=["k", "ARI_mean"], ascending=[True, False]).groupby("k", as_index=False).first()
-        df.to_csv(f"files/GMM_{cov}_ari.csv")
+        df.to_csv(f"{main_data_dir}/GMM_{cov}_ari.csv")
 
+genders = ["both genders"]
+for gender in genders:
+    main_data_dir = "files/"
+    if gender:
+        main_data_dir += gender
 
-save_max_silhouette_per_geometry()
+    save_max_silhouette_per_geometry(main_data_dir)
+    fig = plot_gmm_k_analysis_one_row(main_data_dir,title_word="Stability")
+    plt.show()

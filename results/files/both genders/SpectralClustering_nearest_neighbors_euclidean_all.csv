@@ -1,0 +1,217 @@
+k,Silhouette_mean (cosine),Silhouette_mean (euclidean),ARI_mean,scaler,geometry,n_neighbors
+2,0.525,0.354,1.0,Share of Total,euclidean,10
+2,0.527,0.352,1.0,Share of Total,euclidean,12
+2,0.527,0.352,1.0,Share of Total,euclidean,14
+2,0.512,0.345,1.0,Share of Total,euclidean,6
+2,0.512,0.345,1.0,Share of Total,euclidean,8
+2,0.537,0.343,1.0,L2 Normalization,euclidean,8
+2,0.527,0.333,1.0,L2 Normalization,euclidean,12
+2,0.527,0.333,1.0,L2 Normalization,euclidean,14
+2,0.525,0.333,1.0,L2 Normalization,euclidean,10
+2,0.506,0.332,1.0,Share of Total,euclidean,4
+2,0.525,0.331,1.0,Share of Top 30 (L1 Norm),euclidean,10
+2,0.527,0.33,1.0,Share of Top 30 (L1 Norm),euclidean,12
+2,0.527,0.33,1.0,Share of Top 30 (L1 Norm),euclidean,14
+2,0.512,0.328,1.0,L2 Normalization,euclidean,6
+2,0.512,0.323,1.0,Share of Top 30 (L1 Norm),euclidean,6
+2,0.512,0.323,1.0,Share of Top 30 (L1 Norm),euclidean,8
+2,0.506,0.317,1.0,L2 Normalization,euclidean,4
+2,0.506,0.312,1.0,Share of Top 30 (L1 Norm),euclidean,4
+2,0.494,0.312,1.0,TF-IDF,euclidean,4
+2,0.493,0.31,1.0,TF-IDF,euclidean,10
+2,0.493,0.31,1.0,TF-IDF,euclidean,6
+2,0.493,0.31,1.0,TF-IDF,euclidean,8
+2,0.495,0.307,1.0,TF-IDF,euclidean,12
+2,0.495,0.307,1.0,TF-IDF,euclidean,14
+3,0.355,0.211,1.0,L2 Normalization,euclidean,10
+3,0.354,0.211,1.0,L2 Normalization,euclidean,8
+3,0.347,0.206,1.0,L2 Normalization,euclidean,12
+3,0.338,0.203,1.0,L2 Normalization,euclidean,6
+3,0.354,0.201,1.0,Share of Total,euclidean,10
+3,0.35,0.199,1.0,Share of Top 30 (L1 Norm),euclidean,14
+3,0.35,0.198,1.0,Share of Total,euclidean,14
+3,0.334,0.198,1.0,L2 Normalization,euclidean,14
+3,0.341,0.195,1.0,Share of Total,euclidean,8
+3,0.34,0.194,1.0,Share of Top 30 (L1 Norm),euclidean,10
+3,0.324,0.186,1.0,Share of Top 30 (L1 Norm),euclidean,8
+3,0.335,0.184,0.988,Share of Total,euclidean,12
+3,0.313,0.184,1.0,TF-IDF,euclidean,10
+3,0.304,0.181,0.997,L2 Normalization,euclidean,4
+3,0.307,0.18,1.0,TF-IDF,euclidean,14
+3,0.305,0.179,1.0,TF-IDF,euclidean,8
+3,0.301,0.177,1.0,TF-IDF,euclidean,12
+3,0.305,0.175,1.0,Share of Top 30 (L1 Norm),euclidean,4
+3,0.295,0.174,1.0,TF-IDF,euclidean,4
+3,0.28,0.17,0.999,Share of Top 30 (L1 Norm),euclidean,12
+3,0.267,0.17,1.0,Share of Top 30 (L1 Norm),euclidean,6
+3,0.273,0.169,1.0,Share of Total,euclidean,6
+3,0.282,0.156,0.982,Share of Total,euclidean,4
+3,0.258,0.155,1.0,TF-IDF,euclidean,6
+4,0.326,0.197,1.0,L2 Normalization,euclidean,10
+4,0.324,0.193,1.0,L2 Normalization,euclidean,14
+4,0.316,0.192,1.0,L2 Normalization,euclidean,8
+4,0.315,0.191,1.0,L2 Normalization,euclidean,12
+4,0.308,0.188,1.0,L2 Normalization,euclidean,6
+4,0.326,0.187,1.0,Share of Total,euclidean,10
+4,0.325,0.183,1.0,Share of Top 30 (L1 Norm),euclidean,14
+4,0.32,0.183,1.0,Share of Top 30 (L1 Norm),euclidean,10
+4,0.318,0.182,0.999,Share of Total,euclidean,8
+4,0.316,0.181,1.0,Share of Total,euclidean,12
+4,0.315,0.181,0.999,Share of Top 30 (L1 Norm),euclidean,6
+4,0.317,0.18,1.0,Share of Top 30 (L1 Norm),euclidean,12
+4,0.313,0.179,0.997,Share of Total,euclidean,14
+4,0.312,0.178,0.997,Share of Top 30 (L1 Norm),euclidean,8
+4,0.285,0.175,1.0,L2 Normalization,euclidean,4
+4,0.288,0.17,1.0,Share of Total,euclidean,6
+4,0.277,0.164,0.963,TF-IDF,euclidean,10
+4,0.276,0.164,1.0,TF-IDF,euclidean,12
+4,0.274,0.162,1.0,TF-IDF,euclidean,14
+4,0.269,0.16,0.994,TF-IDF,euclidean,8
+4,0.267,0.16,1.0,TF-IDF,euclidean,6
+4,0.263,0.156,0.992,Share of Total,euclidean,4
+4,0.255,0.152,1.0,Share of Top 30 (L1 Norm),euclidean,4
+4,0.221,0.137,0.998,TF-IDF,euclidean,4
+5,0.293,0.178,1.0,L2 Normalization,euclidean,4
+5,0.279,0.165,1.0,L2 Normalization,euclidean,10
+5,0.279,0.165,0.995,L2 Normalization,euclidean,12
+5,0.269,0.161,1.0,L2 Normalization,euclidean,8
+5,0.271,0.16,0.999,L2 Normalization,euclidean,14
+5,0.288,0.157,1.0,Share of Total,euclidean,10
+5,0.262,0.156,1.0,TF-IDF,euclidean,4
+5,0.243,0.156,0.959,Share of Top 30 (L1 Norm),euclidean,6
+5,0.283,0.155,1.0,Share of Total,euclidean,8
+5,0.282,0.153,0.999,Share of Top 30 (L1 Norm),euclidean,12
+5,0.279,0.153,0.999,Share of Total,euclidean,14
+5,0.27,0.153,0.98,Share of Total,euclidean,6
+5,0.253,0.151,0.998,L2 Normalization,euclidean,6
+5,0.272,0.15,0.999,Share of Total,euclidean,12
+5,0.272,0.147,1.0,Share of Top 30 (L1 Norm),euclidean,10
+5,0.216,0.144,0.985,Share of Top 30 (L1 Norm),euclidean,8
+5,0.241,0.143,0.989,TF-IDF,euclidean,6
+5,0.228,0.142,0.897,Share of Top 30 (L1 Norm),euclidean,14
+5,0.241,0.141,0.999,TF-IDF,euclidean,14
+5,0.24,0.141,0.993,TF-IDF,euclidean,8
+5,0.236,0.14,1.0,TF-IDF,euclidean,10
+5,0.139,0.137,0.995,Share of Top 30 (L1 Norm),euclidean,4
+5,0.23,0.135,0.99,TF-IDF,euclidean,12
+5,0.243,0.134,1.0,Share of Total,euclidean,4
+6,0.277,0.166,0.994,L2 Normalization,euclidean,8
+6,0.291,0.159,0.979,Share of Total,euclidean,14
+6,0.288,0.153,0.993,Share of Total,euclidean,10
+6,0.257,0.152,1.0,L2 Normalization,euclidean,6
+6,0.281,0.151,0.989,Share of Total,euclidean,8
+6,0.258,0.151,0.99,TF-IDF,euclidean,8
+6,0.253,0.151,0.921,L2 Normalization,euclidean,10
+6,0.247,0.144,0.926,TF-IDF,euclidean,6
+6,0.233,0.144,0.923,Share of Top 30 (L1 Norm),euclidean,10
+6,0.209,0.144,0.985,Share of Top 30 (L1 Norm),euclidean,12
+6,0.234,0.142,0.982,L2 Normalization,euclidean,12
+6,0.155,0.141,1.0,Share of Top 30 (L1 Norm),euclidean,4
+6,0.248,0.14,0.992,Share of Total,euclidean,6
+6,0.229,0.14,1.0,L2 Normalization,euclidean,14
+6,0.235,0.139,0.992,TF-IDF,euclidean,10
+6,0.229,0.134,0.963,Share of Top 30 (L1 Norm),euclidean,14
+6,0.177,0.134,0.982,Share of Top 30 (L1 Norm),euclidean,6
+6,0.211,0.132,0.884,Share of Top 30 (L1 Norm),euclidean,8
+6,0.237,0.131,1.0,Share of Total,euclidean,4
+6,0.223,0.13,0.917,TF-IDF,euclidean,12
+6,0.224,0.129,0.971,Share of Total,euclidean,12
+6,0.189,0.122,1.0,L2 Normalization,euclidean,4
+6,0.2,0.118,0.982,TF-IDF,euclidean,4
+6,0.193,0.116,0.926,TF-IDF,euclidean,14
+7,0.258,0.155,0.967,L2 Normalization,euclidean,14
+7,0.244,0.154,1.0,Share of Top 30 (L1 Norm),euclidean,10
+7,0.252,0.15,0.959,L2 Normalization,euclidean,10
+7,0.255,0.148,0.964,Share of Top 30 (L1 Norm),euclidean,12
+7,0.244,0.146,0.931,L2 Normalization,euclidean,12
+7,0.245,0.145,0.968,Share of Top 30 (L1 Norm),euclidean,8
+7,0.21,0.145,0.941,Share of Top 30 (L1 Norm),euclidean,6
+7,0.248,0.144,0.96,Share of Top 30 (L1 Norm),euclidean,14
+7,0.238,0.144,0.906,L2 Normalization,euclidean,6
+7,0.258,0.142,0.951,Share of Total,euclidean,14
+7,0.235,0.142,0.937,L2 Normalization,euclidean,8
+7,0.245,0.138,0.912,Share of Total,euclidean,12
+7,0.249,0.137,0.998,Share of Total,euclidean,6
+7,0.235,0.137,0.998,TF-IDF,euclidean,8
+7,0.254,0.134,0.951,Share of Total,euclidean,8
+7,0.244,0.134,0.928,Share of Total,euclidean,10
+7,0.224,0.131,1.0,TF-IDF,euclidean,6
+7,0.149,0.126,0.961,Share of Top 30 (L1 Norm),euclidean,4
+7,0.208,0.124,0.885,TF-IDF,euclidean,14
+7,0.21,0.123,0.957,TF-IDF,euclidean,10
+7,0.208,0.123,0.962,TF-IDF,euclidean,12
+7,0.166,0.112,1.0,L2 Normalization,euclidean,4
+7,0.178,0.104,1.0,Share of Total,euclidean,4
+7,0.154,0.097,0.969,TF-IDF,euclidean,4
+8,0.241,0.145,0.96,Share of Top 30 (L1 Norm),euclidean,14
+8,0.236,0.145,0.983,Share of Top 30 (L1 Norm),euclidean,10
+8,0.236,0.144,0.968,L2 Normalization,euclidean,6
+8,0.218,0.144,0.934,Share of Top 30 (L1 Norm),euclidean,6
+8,0.239,0.143,0.997,L2 Normalization,euclidean,10
+8,0.238,0.14,0.973,Share of Top 30 (L1 Norm),euclidean,12
+8,0.227,0.137,0.979,Share of Top 30 (L1 Norm),euclidean,8
+8,0.225,0.137,0.997,L2 Normalization,euclidean,8
+8,0.231,0.133,0.926,Share of Total,euclidean,12
+8,0.223,0.13,0.91,Share of Total,euclidean,10
+8,0.229,0.129,0.944,Share of Total,euclidean,14
+8,0.216,0.129,0.91,L2 Normalization,euclidean,12
+8,0.227,0.128,0.982,Share of Total,euclidean,8
+8,0.209,0.127,0.866,L2 Normalization,euclidean,14
+8,0.207,0.122,0.982,TF-IDF,euclidean,10
+8,0.188,0.122,1.0,L2 Normalization,euclidean,4
+8,0.173,0.121,0.995,Share of Top 30 (L1 Norm),euclidean,4
+8,0.205,0.12,0.959,TF-IDF,euclidean,8
+8,0.192,0.115,0.949,TF-IDF,euclidean,12
+8,0.185,0.111,0.864,TF-IDF,euclidean,14
+8,0.169,0.104,0.988,TF-IDF,euclidean,6
+8,0.164,0.096,0.842,Share of Total,euclidean,6
+8,0.151,0.094,0.994,TF-IDF,euclidean,4
+8,0.114,0.075,0.977,Share of Total,euclidean,4
+9,0.231,0.141,0.968,Share of Top 30 (L1 Norm),euclidean,6
+9,0.233,0.14,0.867,L2 Normalization,euclidean,14
+9,0.234,0.139,0.953,Share of Top 30 (L1 Norm),euclidean,12
+9,0.23,0.136,0.919,Share of Top 30 (L1 Norm),euclidean,14
+9,0.224,0.136,0.896,Share of Top 30 (L1 Norm),euclidean,8
+9,0.224,0.135,0.903,L2 Normalization,euclidean,10
+9,0.221,0.135,0.979,L2 Normalization,euclidean,4
+9,0.169,0.135,0.882,Share of Top 30 (L1 Norm),euclidean,4
+9,0.225,0.134,0.874,L2 Normalization,euclidean,6
+9,0.222,0.131,0.842,Share of Top 30 (L1 Norm),euclidean,10
+9,0.219,0.13,0.917,L2 Normalization,euclidean,8
+9,0.215,0.13,0.821,L2 Normalization,euclidean,12
+9,0.219,0.127,0.941,Share of Total,euclidean,14
+9,0.222,0.126,0.887,Share of Total,euclidean,12
+9,0.21,0.122,0.851,Share of Total,euclidean,10
+9,0.203,0.121,0.939,Share of Total,euclidean,8
+9,0.191,0.112,0.963,TF-IDF,euclidean,6
+9,0.186,0.111,0.775,TF-IDF,euclidean,14
+9,0.185,0.111,0.866,TF-IDF,euclidean,12
+9,0.182,0.11,0.883,TF-IDF,euclidean,10
+9,0.175,0.107,0.907,TF-IDF,euclidean,8
+9,0.152,0.093,0.999,TF-IDF,euclidean,4
+9,0.132,0.086,0.857,Share of Total,euclidean,6
+9,0.13,0.085,0.915,Share of Total,euclidean,4
+10,0.232,0.138,0.912,Share of Top 30 (L1 Norm),euclidean,14
+10,0.231,0.135,0.896,Share of Top 30 (L1 Norm),euclidean,12
+10,0.223,0.133,0.766,L2 Normalization,euclidean,14
+10,0.21,0.13,0.999,L2 Normalization,euclidean,4
+10,0.219,0.129,0.93,Share of Top 30 (L1 Norm),euclidean,6
+10,0.201,0.122,0.955,L2 Normalization,euclidean,6
+10,0.203,0.121,0.778,L2 Normalization,euclidean,12
+10,0.203,0.117,0.801,Share of Total,euclidean,14
+10,0.197,0.117,0.797,L2 Normalization,euclidean,10
+10,0.166,0.117,0.845,Share of Top 30 (L1 Norm),euclidean,4
+10,0.192,0.116,0.777,L2 Normalization,euclidean,8
+10,0.18,0.112,0.814,Share of Top 30 (L1 Norm),euclidean,8
+10,0.186,0.111,0.825,Share of Top 30 (L1 Norm),euclidean,10
+10,0.183,0.111,0.838,TF-IDF,euclidean,14
+10,0.187,0.108,0.747,Share of Total,euclidean,10
+10,0.185,0.108,0.923,Share of Total,euclidean,8
+10,0.191,0.107,0.702,Share of Total,euclidean,12
+10,0.172,0.106,0.773,TF-IDF,euclidean,8
+10,0.174,0.103,0.826,TF-IDF,euclidean,12
+10,0.166,0.101,0.911,TF-IDF,euclidean,6
+10,0.164,0.097,0.849,TF-IDF,euclidean,10
+10,0.13,0.091,0.907,Share of Total,euclidean,4
+10,0.134,0.09,0.813,Share of Total,euclidean,6
+10,0.142,0.087,0.991,TF-IDF,euclidean,4

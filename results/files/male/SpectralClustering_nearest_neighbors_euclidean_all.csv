@@ -1,0 +1,365 @@
+k,Silhouette_mean (cosine),Silhouette_mean (euclidean),ARI_mean,scaler,geometry,n_neighbors
+2,0.525,0.375,1.0,Share of Total,nearest_neighbors,10
+2,0.525,0.375,1.0,Share of Total,nearest_neighbors,9
+2,0.503,0.367,1.0,Share of Total,nearest_neighbors,5
+2,0.503,0.367,1.0,Share of Total,nearest_neighbors,6
+2,0.503,0.367,1.0,Share of Total,nearest_neighbors,7
+2,0.497,0.357,1.0,Share of Total,nearest_neighbors,4
+2,0.497,0.357,1.0,Share of Total,nearest_neighbors,8
+2,0.525,0.336,1.0,L2 Normalization,nearest_neighbors,10
+2,0.503,0.33,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,6
+2,0.503,0.327,1.0,L2 Normalization,nearest_neighbors,4
+2,0.503,0.327,1.0,L2 Normalization,nearest_neighbors,6
+2,0.503,0.327,1.0,L2 Normalization,nearest_neighbors,7
+2,0.497,0.321,1.0,L2 Normalization,nearest_neighbors,5
+2,0.497,0.321,1.0,L2 Normalization,nearest_neighbors,8
+2,0.497,0.321,1.0,L2 Normalization,nearest_neighbors,9
+2,0.497,0.321,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,10
+2,0.497,0.321,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,4
+2,0.497,0.321,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,5
+2,0.497,0.321,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,7
+2,0.497,0.321,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,8
+2,0.497,0.321,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,9
+2,0.474,0.299,1.0,TF-IDF,nearest_neighbors,4
+2,0.474,0.299,1.0,TF-IDF,nearest_neighbors,6
+2,0.474,0.299,1.0,TF-IDF,nearest_neighbors,7
+2,0.474,0.299,1.0,TF-IDF,nearest_neighbors,8
+2,0.474,0.299,1.0,TF-IDF,nearest_neighbors,9
+2,0.466,0.292,1.0,TF-IDF,nearest_neighbors,10
+2,0.466,0.292,1.0,TF-IDF,nearest_neighbors,5
+3,0.393,0.238,1.0,L2 Normalization,nearest_neighbors,10
+3,0.385,0.234,1.0,L2 Normalization,nearest_neighbors,6
+3,0.394,0.233,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,5
+3,0.393,0.231,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,10
+3,0.393,0.226,1.0,Share of Total,nearest_neighbors,10
+3,0.373,0.226,1.0,L2 Normalization,nearest_neighbors,7
+3,0.371,0.226,0.986,L2 Normalization,nearest_neighbors,9
+3,0.373,0.221,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,4
+3,0.374,0.216,1.0,Share of Total,nearest_neighbors,8
+3,0.342,0.212,0.996,L2 Normalization,nearest_neighbors,4
+3,0.354,0.21,1.0,TF-IDF,nearest_neighbors,8
+3,0.324,0.206,1.0,L2 Normalization,nearest_neighbors,8
+3,0.345,0.204,1.0,TF-IDF,nearest_neighbors,10
+3,0.342,0.202,0.997,TF-IDF,nearest_neighbors,7
+3,0.331,0.198,1.0,Share of Total,nearest_neighbors,4
+3,0.335,0.197,1.0,TF-IDF,nearest_neighbors,6
+3,0.333,0.197,0.978,TF-IDF,nearest_neighbors,9
+3,0.326,0.197,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,6
+3,0.324,0.196,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,7
+3,0.324,0.196,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,8
+3,0.324,0.196,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,9
+3,0.324,0.194,1.0,Share of Total,nearest_neighbors,9
+3,0.313,0.188,1.0,Share of Total,nearest_neighbors,7
+3,0.309,0.187,1.0,Share of Total,nearest_neighbors,5
+3,0.304,0.182,0.999,Share of Total,nearest_neighbors,6
+3,0.259,0.171,1.0,L2 Normalization,nearest_neighbors,5
+3,0.272,0.167,1.0,TF-IDF,nearest_neighbors,5
+3,0.267,0.166,1.0,TF-IDF,nearest_neighbors,4
+4,0.375,0.23,1.0,L2 Normalization,nearest_neighbors,8
+4,0.373,0.23,1.0,L2 Normalization,nearest_neighbors,10
+4,0.373,0.23,1.0,L2 Normalization,nearest_neighbors,7
+4,0.37,0.228,1.0,L2 Normalization,nearest_neighbors,9
+4,0.366,0.226,1.0,L2 Normalization,nearest_neighbors,6
+4,0.379,0.218,0.999,Share of Top 30 (L1 Norm),nearest_neighbors,6
+4,0.38,0.215,1.0,Share of Total,nearest_neighbors,10
+4,0.38,0.215,1.0,Share of Total,nearest_neighbors,8
+4,0.374,0.215,0.967,Share of Top 30 (L1 Norm),nearest_neighbors,5
+4,0.373,0.214,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,10
+4,0.373,0.214,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,8
+4,0.373,0.214,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,9
+4,0.373,0.213,1.0,Share of Total,nearest_neighbors,9
+4,0.37,0.213,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,7
+4,0.363,0.207,1.0,Share of Total,nearest_neighbors,6
+4,0.358,0.206,1.0,Share of Total,nearest_neighbors,5
+4,0.356,0.205,0.977,Share of Total,nearest_neighbors,7
+4,0.325,0.204,1.0,L2 Normalization,nearest_neighbors,5
+4,0.32,0.202,0.995,L2 Normalization,nearest_neighbors,4
+4,0.324,0.194,1.0,TF-IDF,nearest_neighbors,8
+4,0.335,0.193,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,4
+4,0.323,0.193,1.0,TF-IDF,nearest_neighbors,7
+4,0.315,0.189,0.998,TF-IDF,nearest_neighbors,6
+4,0.308,0.184,1.0,TF-IDF,nearest_neighbors,9
+4,0.304,0.181,1.0,TF-IDF,nearest_neighbors,10
+4,0.305,0.173,0.993,Share of Total,nearest_neighbors,4
+4,0.277,0.17,1.0,TF-IDF,nearest_neighbors,5
+4,0.281,0.169,0.976,TF-IDF,nearest_neighbors,4
+5,0.337,0.204,0.998,L2 Normalization,nearest_neighbors,8
+5,0.33,0.2,1.0,L2 Normalization,nearest_neighbors,9
+5,0.334,0.192,0.999,Share of Top 30 (L1 Norm),nearest_neighbors,8
+5,0.327,0.192,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,7
+5,0.317,0.192,1.0,L2 Normalization,nearest_neighbors,6
+5,0.308,0.191,1.0,L2 Normalization,nearest_neighbors,5
+5,0.312,0.187,0.995,Share of Top 30 (L1 Norm),nearest_neighbors,5
+5,0.305,0.186,1.0,L2 Normalization,nearest_neighbors,4
+5,0.304,0.185,0.999,L2 Normalization,nearest_neighbors,10
+5,0.302,0.185,0.989,L2 Normalization,nearest_neighbors,7
+5,0.317,0.183,0.999,Share of Top 30 (L1 Norm),nearest_neighbors,10
+5,0.319,0.178,0.998,Share of Top 30 (L1 Norm),nearest_neighbors,6
+5,0.315,0.176,0.992,Share of Top 30 (L1 Norm),nearest_neighbors,9
+5,0.32,0.175,1.0,Share of Total,nearest_neighbors,8
+5,0.316,0.172,1.0,Share of Total,nearest_neighbors,6
+5,0.313,0.171,0.992,Share of Total,nearest_neighbors,7
+5,0.315,0.17,0.999,Share of Total,nearest_neighbors,9
+5,0.314,0.169,0.997,Share of Total,nearest_neighbors,5
+5,0.313,0.168,1.0,Share of Total,nearest_neighbors,10
+5,0.274,0.166,0.958,TF-IDF,nearest_neighbors,6
+5,0.273,0.163,0.985,TF-IDF,nearest_neighbors,7
+5,0.271,0.162,1.0,TF-IDF,nearest_neighbors,5
+5,0.271,0.161,0.999,Share of Top 30 (L1 Norm),nearest_neighbors,4
+5,0.268,0.161,1.0,TF-IDF,nearest_neighbors,9
+5,0.265,0.159,0.999,TF-IDF,nearest_neighbors,10
+5,0.29,0.156,1.0,Share of Total,nearest_neighbors,4
+5,0.259,0.156,0.999,TF-IDF,nearest_neighbors,8
+5,0.246,0.152,0.986,TF-IDF,nearest_neighbors,4
+6,0.351,0.211,0.982,L2 Normalization,nearest_neighbors,5
+6,0.33,0.197,0.99,L2 Normalization,nearest_neighbors,6
+6,0.322,0.195,0.983,L2 Normalization,nearest_neighbors,7
+6,0.321,0.194,0.994,L2 Normalization,nearest_neighbors,4
+6,0.347,0.19,1.0,Share of Total,nearest_neighbors,8
+6,0.338,0.189,0.989,Share of Top 30 (L1 Norm),nearest_neighbors,10
+6,0.341,0.185,0.954,Share of Total,nearest_neighbors,7
+6,0.339,0.184,0.967,Share of Total,nearest_neighbors,6
+6,0.3,0.181,0.985,L2 Normalization,nearest_neighbors,10
+6,0.302,0.178,0.994,TF-IDF,nearest_neighbors,6
+6,0.294,0.176,0.984,L2 Normalization,nearest_neighbors,8
+6,0.293,0.176,1.0,L2 Normalization,nearest_neighbors,9
+6,0.296,0.174,0.904,Share of Top 30 (L1 Norm),nearest_neighbors,8
+6,0.294,0.173,0.994,TF-IDF,nearest_neighbors,7
+6,0.291,0.172,0.953,TF-IDF,nearest_neighbors,8
+6,0.289,0.171,0.954,TF-IDF,nearest_neighbors,10
+6,0.292,0.169,0.966,Share of Top 30 (L1 Norm),nearest_neighbors,9
+6,0.295,0.168,0.998,Share of Top 30 (L1 Norm),nearest_neighbors,7
+6,0.31,0.167,0.973,Share of Total,nearest_neighbors,9
+6,0.293,0.166,0.985,Share of Top 30 (L1 Norm),nearest_neighbors,5
+6,0.284,0.165,0.992,Share of Top 30 (L1 Norm),nearest_neighbors,6
+6,0.303,0.16,0.984,Share of Total,nearest_neighbors,10
+6,0.267,0.158,0.958,TF-IDF,nearest_neighbors,9
+6,0.282,0.152,0.961,Share of Total,nearest_neighbors,5
+6,0.244,0.147,0.991,TF-IDF,nearest_neighbors,4
+6,0.238,0.144,0.98,Share of Top 30 (L1 Norm),nearest_neighbors,4
+6,0.264,0.142,0.999,Share of Total,nearest_neighbors,4
+6,0.228,0.141,0.976,TF-IDF,nearest_neighbors,5
+7,0.336,0.2,0.985,L2 Normalization,nearest_neighbors,5
+7,0.298,0.181,0.977,L2 Normalization,nearest_neighbors,4
+7,0.302,0.18,0.992,L2 Normalization,nearest_neighbors,6
+7,0.297,0.175,0.959,Share of Top 30 (L1 Norm),nearest_neighbors,10
+7,0.266,0.175,0.971,Share of Top 30 (L1 Norm),nearest_neighbors,9
+7,0.286,0.173,0.937,L2 Normalization,nearest_neighbors,9
+7,0.268,0.163,0.771,L2 Normalization,nearest_neighbors,7
+7,0.312,0.162,0.968,Share of Total,nearest_neighbors,6
+7,0.27,0.162,0.996,TF-IDF,nearest_neighbors,5
+7,0.27,0.161,0.999,L2 Normalization,nearest_neighbors,8
+7,0.269,0.161,0.968,TF-IDF,nearest_neighbors,6
+7,0.27,0.159,0.978,TF-IDF,nearest_neighbors,9
+7,0.231,0.159,1.0,Share of Top 30 (L1 Norm),nearest_neighbors,4
+7,0.227,0.159,0.935,Share of Top 30 (L1 Norm),nearest_neighbors,6
+7,0.224,0.159,0.978,Share of Top 30 (L1 Norm),nearest_neighbors,5
+7,0.278,0.155,0.961,Share of Top 30 (L1 Norm),nearest_neighbors,8
+7,0.277,0.154,0.855,Share of Total,nearest_neighbors,8
+7,0.253,0.154,0.954,L2 Normalization,nearest_neighbors,10
+7,0.268,0.153,0.844,Share of Top 30 (L1 Norm),nearest_neighbors,7
+7,0.287,0.151,0.941,Share of Total,nearest_neighbors,7
+7,0.275,0.151,0.946,Share of Total,nearest_neighbors,9
+7,0.256,0.151,0.963,TF-IDF,nearest_neighbors,10
+7,0.285,0.149,0.952,Share of Total,nearest_neighbors,5
+7,0.264,0.141,0.999,Share of Total,nearest_neighbors,4
+7,0.258,0.139,0.934,Share of Total,nearest_neighbors,10
+7,0.219,0.133,1.0,TF-IDF,nearest_neighbors,7
+7,0.202,0.123,0.871,TF-IDF,nearest_neighbors,8
+7,0.164,0.109,0.967,TF-IDF,nearest_neighbors,4
+8,0.267,0.175,0.999,Share of Top 30 (L1 Norm),nearest_neighbors,5
+8,0.263,0.174,0.989,Share of Top 30 (L1 Norm),nearest_neighbors,6
+8,0.268,0.172,0.914,Share of Top 30 (L1 Norm),nearest_neighbors,8
+8,0.277,0.17,0.991,L2 Normalization,nearest_neighbors,5
+8,0.267,0.17,0.917,Share of Top 30 (L1 Norm),nearest_neighbors,7
+8,0.265,0.168,0.962,Share of Top 30 (L1 Norm),nearest_neighbors,9
+8,0.277,0.167,0.968,L2 Normalization,nearest_neighbors,8
+8,0.276,0.167,0.916,L2 Normalization,nearest_neighbors,7
+8,0.275,0.167,0.966,L2 Normalization,nearest_neighbors,10
+8,0.27,0.167,0.904,Share of Top 30 (L1 Norm),nearest_neighbors,10
+8,0.276,0.166,0.859,L2 Normalization,nearest_neighbors,9
+8,0.274,0.166,0.99,L2 Normalization,nearest_neighbors,6
+8,0.27,0.163,0.99,L2 Normalization,nearest_neighbors,4
+8,0.282,0.154,0.91,Share of Total,nearest_neighbors,9
+8,0.277,0.15,0.957,Share of Total,nearest_neighbors,5
+8,0.271,0.149,0.943,Share of Total,nearest_neighbors,10
+8,0.183,0.149,0.972,Share of Top 30 (L1 Norm),nearest_neighbors,4
+8,0.272,0.148,0.956,Share of Total,nearest_neighbors,8
+8,0.262,0.143,0.906,Share of Total,nearest_neighbors,6
+8,0.252,0.139,0.959,Share of Total,nearest_neighbors,7
+8,0.221,0.136,0.953,TF-IDF,nearest_neighbors,5
+8,0.219,0.135,0.914,TF-IDF,nearest_neighbors,6
+8,0.215,0.131,0.987,TF-IDF,nearest_neighbors,10
+8,0.209,0.127,0.888,TF-IDF,nearest_neighbors,7
+8,0.205,0.125,0.881,TF-IDF,nearest_neighbors,9
+8,0.201,0.125,0.967,TF-IDF,nearest_neighbors,4
+8,0.201,0.122,0.935,TF-IDF,nearest_neighbors,8
+8,0.214,0.117,0.902,Share of Total,nearest_neighbors,4
+9,0.29,0.181,0.949,Share of Top 30 (L1 Norm),nearest_neighbors,6
+9,0.276,0.17,0.971,Share of Top 30 (L1 Norm),nearest_neighbors,9
+9,0.276,0.169,0.997,L2 Normalization,nearest_neighbors,5
+9,0.276,0.167,0.816,Share of Top 30 (L1 Norm),nearest_neighbors,10
+9,0.274,0.167,0.917,L2 Normalization,nearest_neighbors,7
+9,0.271,0.167,0.939,L2 Normalization,nearest_neighbors,6
+9,0.276,0.166,0.859,L2 Normalization,nearest_neighbors,10
+9,0.267,0.163,0.91,L2 Normalization,nearest_neighbors,8
+9,0.27,0.162,0.891,Share of Top 30 (L1 Norm),nearest_neighbors,8
+9,0.264,0.161,0.788,L2 Normalization,nearest_neighbors,9
+9,0.274,0.155,0.942,Share of Total,nearest_neighbors,6
+9,0.252,0.155,0.897,Share of Top 30 (L1 Norm),nearest_neighbors,7
+9,0.209,0.153,0.991,Share of Top 30 (L1 Norm),nearest_neighbors,4
+9,0.234,0.152,0.954,Share of Top 30 (L1 Norm),nearest_neighbors,5
+9,0.265,0.147,0.852,Share of Total,nearest_neighbors,8
+9,0.265,0.147,0.837,Share of Total,nearest_neighbors,9
+9,0.245,0.147,0.994,L2 Normalization,nearest_neighbors,4
+9,0.261,0.144,0.857,Share of Total,nearest_neighbors,10
+9,0.259,0.144,0.886,Share of Total,nearest_neighbors,7
+9,0.236,0.141,0.991,TF-IDF,nearest_neighbors,5
+9,0.236,0.136,0.916,Share of Total,nearest_neighbors,5
+9,0.215,0.132,0.893,TF-IDF,nearest_neighbors,7
+9,0.215,0.129,0.812,TF-IDF,nearest_neighbors,10
+9,0.208,0.128,0.955,TF-IDF,nearest_neighbors,6
+9,0.209,0.127,0.849,TF-IDF,nearest_neighbors,8
+9,0.204,0.125,0.878,TF-IDF,nearest_neighbors,9
+9,0.19,0.117,0.972,TF-IDF,nearest_neighbors,4
+9,0.151,0.097,0.942,Share of Total,nearest_neighbors,4
+10,0.288,0.175,0.985,L2 Normalization,nearest_neighbors,6
+10,0.284,0.171,0.974,L2 Normalization,nearest_neighbors,5
+10,0.279,0.169,0.973,L2 Normalization,nearest_neighbors,8
+10,0.279,0.169,0.939,L2 Normalization,nearest_neighbors,7
+10,0.276,0.166,0.934,L2 Normalization,nearest_neighbors,9
+10,0.274,0.165,0.85,L2 Normalization,nearest_neighbors,10
+10,0.241,0.164,0.956,Share of Top 30 (L1 Norm),nearest_neighbors,4
+10,0.275,0.162,0.979,Share of Top 30 (L1 Norm),nearest_neighbors,7
+10,0.265,0.161,0.898,Share of Top 30 (L1 Norm),nearest_neighbors,6
+10,0.282,0.156,0.891,Share of Total,nearest_neighbors,6
+10,0.273,0.156,0.847,Share of Top 30 (L1 Norm),nearest_neighbors,10
+10,0.269,0.156,0.902,Share of Top 30 (L1 Norm),nearest_neighbors,9
+10,0.28,0.152,0.96,Share of Total,nearest_neighbors,8
+10,0.277,0.152,0.979,Share of Total,nearest_neighbors,9
+10,0.278,0.151,0.965,Share of Total,nearest_neighbors,7
+10,0.232,0.149,0.922,Share of Top 30 (L1 Norm),nearest_neighbors,5
+10,0.259,0.147,0.859,Share of Top 30 (L1 Norm),nearest_neighbors,8
+10,0.238,0.144,0.931,L2 Normalization,nearest_neighbors,4
+10,0.231,0.14,0.978,TF-IDF,nearest_neighbors,7
+10,0.252,0.138,0.85,Share of Total,nearest_neighbors,10
+10,0.223,0.136,0.884,Share of Total,nearest_neighbors,5
+10,0.22,0.132,0.909,TF-IDF,nearest_neighbors,8
+10,0.218,0.132,0.892,TF-IDF,nearest_neighbors,9
+10,0.215,0.13,0.978,TF-IDF,nearest_neighbors,6
+10,0.206,0.124,0.837,TF-IDF,nearest_neighbors,10
+10,0.201,0.122,0.941,TF-IDF,nearest_neighbors,5
+10,0.159,0.097,0.981,TF-IDF,nearest_neighbors,4
+10,0.11,0.081,0.896,Share of Total,nearest_neighbors,4
+11,0.268,0.163,0.978,L2 Normalization,nearest_neighbors,6
+11,0.24,0.16,0.987,Share of Top 30 (L1 Norm),nearest_neighbors,4
+11,0.26,0.159,0.91,Share of Top 30 (L1 Norm),nearest_neighbors,5
+11,0.259,0.154,0.989,L2 Normalization,nearest_neighbors,7
+11,0.255,0.151,0.895,L2 Normalization,nearest_neighbors,10
+11,0.24,0.151,0.983,Share of Top 30 (L1 Norm),nearest_neighbors,6
+11,0.252,0.148,0.95,L2 Normalization,nearest_neighbors,9
+11,0.239,0.148,0.92,Share of Top 30 (L1 Norm),nearest_neighbors,7
+11,0.246,0.146,0.949,Share of Top 30 (L1 Norm),nearest_neighbors,8
+11,0.239,0.145,0.965,L2 Normalization,nearest_neighbors,4
+11,0.242,0.142,0.979,L2 Normalization,nearest_neighbors,8
+11,0.242,0.142,0.942,L2 Normalization,nearest_neighbors,5
+11,0.256,0.138,0.933,Share of Total,nearest_neighbors,10
+11,0.244,0.137,0.851,Share of Top 30 (L1 Norm),nearest_neighbors,10
+11,0.236,0.136,0.958,Share of Top 30 (L1 Norm),nearest_neighbors,9
+11,0.247,0.134,0.963,Share of Total,nearest_neighbors,9
+11,0.237,0.132,0.92,Share of Total,nearest_neighbors,8
+11,0.24,0.129,0.784,Share of Total,nearest_neighbors,7
+11,0.215,0.129,0.926,TF-IDF,nearest_neighbors,8
+11,0.212,0.128,0.936,TF-IDF,nearest_neighbors,7
+11,0.22,0.127,0.848,Share of Total,nearest_neighbors,6
+11,0.202,0.122,0.869,Share of Total,nearest_neighbors,5
+11,0.201,0.121,0.841,TF-IDF,nearest_neighbors,9
+11,0.187,0.112,0.799,TF-IDF,nearest_neighbors,10
+11,0.182,0.108,0.922,TF-IDF,nearest_neighbors,6
+11,0.168,0.101,0.895,TF-IDF,nearest_neighbors,5
+11,0.144,0.09,0.821,TF-IDF,nearest_neighbors,4
+11,0.131,0.09,0.798,Share of Total,nearest_neighbors,4
+12,0.264,0.169,0.987,Share of Top 30 (L1 Norm),nearest_neighbors,4
+12,0.245,0.154,0.883,Share of Top 30 (L1 Norm),nearest_neighbors,10
+12,0.239,0.148,0.933,Share of Top 30 (L1 Norm),nearest_neighbors,9
+12,0.247,0.146,0.98,Share of Top 30 (L1 Norm),nearest_neighbors,8
+12,0.244,0.146,0.92,Share of Top 30 (L1 Norm),nearest_neighbors,7
+12,0.237,0.143,0.946,Share of Top 30 (L1 Norm),nearest_neighbors,6
+12,0.247,0.142,0.854,Share of Total,nearest_neighbors,10
+12,0.243,0.142,0.918,L2 Normalization,nearest_neighbors,9
+12,0.24,0.142,0.817,L2 Normalization,nearest_neighbors,10
+12,0.235,0.142,0.985,Share of Top 30 (L1 Norm),nearest_neighbors,5
+12,0.238,0.141,0.964,L2 Normalization,nearest_neighbors,6
+12,0.238,0.137,0.904,Share of Total,nearest_neighbors,9
+12,0.232,0.137,0.839,L2 Normalization,nearest_neighbors,8
+12,0.231,0.133,0.857,Share of Total,nearest_neighbors,8
+12,0.226,0.133,0.938,L2 Normalization,nearest_neighbors,7
+12,0.223,0.131,0.892,L2 Normalization,nearest_neighbors,5
+12,0.214,0.126,0.906,Share of Total,nearest_neighbors,6
+12,0.206,0.126,0.9,Share of Total,nearest_neighbors,5
+12,0.201,0.122,0.964,L2 Normalization,nearest_neighbors,4
+12,0.198,0.12,0.834,TF-IDF,nearest_neighbors,8
+12,0.197,0.116,0.873,Share of Total,nearest_neighbors,7
+12,0.185,0.114,0.98,TF-IDF,nearest_neighbors,7
+12,0.184,0.111,0.757,TF-IDF,nearest_neighbors,9
+12,0.175,0.106,0.771,TF-IDF,nearest_neighbors,10
+12,0.17,0.102,0.853,TF-IDF,nearest_neighbors,6
+12,0.165,0.101,0.855,TF-IDF,nearest_neighbors,4
+12,0.165,0.099,0.889,TF-IDF,nearest_neighbors,5
+12,0.159,0.099,0.86,Share of Total,nearest_neighbors,4
+13,0.246,0.15,0.877,Share of Top 30 (L1 Norm),nearest_neighbors,9
+13,0.256,0.148,0.972,Share of Top 30 (L1 Norm),nearest_neighbors,8
+13,0.249,0.147,0.94,L2 Normalization,nearest_neighbors,6
+13,0.234,0.146,0.881,Share of Top 30 (L1 Norm),nearest_neighbors,6
+13,0.233,0.146,0.824,Share of Top 30 (L1 Norm),nearest_neighbors,10
+13,0.243,0.144,0.859,Share of Top 30 (L1 Norm),nearest_neighbors,7
+13,0.243,0.143,0.834,L2 Normalization,nearest_neighbors,10
+13,0.217,0.139,0.943,Share of Top 30 (L1 Norm),nearest_neighbors,4
+13,0.233,0.136,0.819,L2 Normalization,nearest_neighbors,9
+13,0.24,0.134,0.959,Share of Total,nearest_neighbors,10
+13,0.225,0.133,0.826,L2 Normalization,nearest_neighbors,8
+13,0.235,0.132,0.928,Share of Total,nearest_neighbors,9
+13,0.223,0.131,0.835,L2 Normalization,nearest_neighbors,5
+13,0.209,0.13,0.967,Share of Top 30 (L1 Norm),nearest_neighbors,5
+13,0.213,0.126,0.857,Share of Total,nearest_neighbors,5
+13,0.211,0.126,0.965,L2 Normalization,nearest_neighbors,4
+13,0.221,0.124,0.801,Share of Total,nearest_neighbors,8
+13,0.21,0.124,0.853,L2 Normalization,nearest_neighbors,7
+13,0.218,0.123,0.897,Share of Total,nearest_neighbors,6
+13,0.197,0.116,0.829,Share of Total,nearest_neighbors,7
+13,0.189,0.115,0.955,TF-IDF,nearest_neighbors,7
+13,0.187,0.114,0.846,TF-IDF,nearest_neighbors,8
+13,0.181,0.108,0.796,TF-IDF,nearest_neighbors,9
+13,0.18,0.108,0.82,TF-IDF,nearest_neighbors,10
+13,0.169,0.105,0.77,Share of Total,nearest_neighbors,4
+13,0.172,0.102,0.922,TF-IDF,nearest_neighbors,5
+13,0.166,0.1,0.846,TF-IDF,nearest_neighbors,6
+13,0.161,0.098,0.885,TF-IDF,nearest_neighbors,4
+14,0.246,0.154,0.825,Share of Top 30 (L1 Norm),nearest_neighbors,7
+14,0.239,0.146,0.819,Share of Top 30 (L1 Norm),nearest_neighbors,10
+14,0.24,0.145,0.939,Share of Top 30 (L1 Norm),nearest_neighbors,9
+14,0.242,0.142,0.807,L2 Normalization,nearest_neighbors,9
+14,0.241,0.142,0.786,L2 Normalization,nearest_neighbors,10
+14,0.21,0.139,0.884,Share of Top 30 (L1 Norm),nearest_neighbors,6
+14,0.236,0.138,0.93,Share of Top 30 (L1 Norm),nearest_neighbors,8
+14,0.235,0.138,0.874,L2 Normalization,nearest_neighbors,6
+14,0.234,0.138,0.862,L2 Normalization,nearest_neighbors,8
+14,0.206,0.134,0.951,Share of Top 30 (L1 Norm),nearest_neighbors,5
+14,0.226,0.132,0.921,L2 Normalization,nearest_neighbors,5
+14,0.236,0.13,0.84,Share of Total,nearest_neighbors,9
+14,0.191,0.128,0.923,Share of Top 30 (L1 Norm),nearest_neighbors,4
+14,0.211,0.126,0.868,L2 Normalization,nearest_neighbors,7
+14,0.224,0.124,0.878,Share of Total,nearest_neighbors,6
+14,0.214,0.123,0.824,Share of Total,nearest_neighbors,7
+14,0.222,0.122,0.84,Share of Total,nearest_neighbors,8
+14,0.221,0.121,0.84,Share of Total,nearest_neighbors,10
+14,0.201,0.12,0.807,Share of Total,nearest_neighbors,5
+14,0.192,0.115,0.871,Share of Total,nearest_neighbors,4
+14,0.191,0.114,0.938,L2 Normalization,nearest_neighbors,4
+14,0.176,0.107,0.834,TF-IDF,nearest_neighbors,8
+14,0.176,0.106,0.928,TF-IDF,nearest_neighbors,7
+14,0.171,0.103,0.779,TF-IDF,nearest_neighbors,9
+14,0.166,0.098,0.96,TF-IDF,nearest_neighbors,5
+14,0.165,0.098,0.757,TF-IDF,nearest_neighbors,10
+14,0.16,0.096,0.807,TF-IDF,nearest_neighbors,6
+14,0.149,0.092,0.961,TF-IDF,nearest_neighbors,4

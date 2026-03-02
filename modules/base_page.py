@@ -1,28 +1,18 @@
 # Standard Packages
-from typing import Dict, List
 from abc import ABC, abstractmethod
 # Data Processing and Analysis
 import pandas as pd
 import geopandas as gpd
 # Visualization
 import matplotlib.pyplot as plt
-import streamlit
-from adjustText import adjust_text
-from sklearn.decomposition import PCA
-
 from clustering.models.factory import get_engine_class
 from clustering.models.hierarchical import HierarchicalBaseClusteringEngine
-from clustering.models.kmeans import KMeansEngine
-from clustering.models.spectral import SpectralClusteringEngine
 from viz import PCAPlotter, OptimalKPlotter
-# Machine Learning
-from clustering.base_clustering import BaseClustering
 # Streamlit & Tools
 from viz.gui_helpers.clustering_helpers import *
+from viz.gui_helpers.ui_base_page import sidebar_controls_basic_setup
 from viz.plotters.geo_cluster_plotter import GeoClusterPlotter
 from viz.config import COLORS, CLUSTER_COLOR_MAPPING, VA_POSITIONS, HA_POSITIONS
-from clustering.models.gmm import GMMEngine
-from clustering.models.kmedoids import KMedoidsEngine
 
 class BasePage(ABC):
     features = None
@@ -35,19 +25,18 @@ class BasePage(ABC):
     data = None  # Class-level data storage
     gdf_centroids = None  # closest provinces to centroids
 
+
     @staticmethod
-    @st.cache_data  # This is the best way!
+    @st.cache_data
     def load_geo_data():
-        gdf = {}
-        gdf["district"] = gpd.read_file("data/preprocessed/gdf_borders_district.geojson")
-        gdf["province"] = gpd.read_file("data/preprocessed/gdf_borders_ibbs3.geojson")
+        gdf = {"district": gpd.read_file("data/preprocessed/gdf_borders_district.geojson"),
+               "province": gpd.read_file("data/preprocessed/gdf_borders_ibbs3.geojson")}
         return gdf
 
     @property
     def gdf(self):
-        # Just call the cached function directly.
-        # Streamlit handles the speed and memory optimization for you.
         return BasePage.load_geo_data()
+
     def load_data(self):
         if self.data is None:
             self.data = self.get_data()
@@ -68,22 +57,6 @@ class BasePage(ABC):
     def gdf_clusters(self, value):
         st.session_state["gdf_clusters"] = value
 
-    def load_css(self, file_path: str) -> None:
-        """
-        Load CSS from a file and inject it into the Streamlit app using st.markdown.
-
-        Args:
-            file_path: Path to the CSS file.
-        """
-        try:
-            with open(file_path, "r") as f:
-                css = f.read()
-            st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
-        except FileNotFoundError:
-            print(f"CSS file not found: {file_path}")
-        except Exception as e:
-            print(f"CSS file not found: {file_path}")
-
     @staticmethod
     def convert_year_index_data_type(df):
         """Not all data years are integers.In particular elections data of 2015 June and 2015 November are not string"""
@@ -91,13 +64,6 @@ class BasePage(ABC):
 
     def fun_extras(self, *args):
         pass
-
-    @staticmethod
-    @st.cache_data
-    def load_geo_data():
-        gdf = {"district": gpd.read_file("data/preprocessed/gdf_borders_district.geojson"),
-               "province": gpd.read_file("data/preprocessed/gdf_borders_ibbs3.geojson")}
-        return gdf
 
     def render(self):
         pass
@@ -124,57 +90,11 @@ class BasePage(ABC):
             selected_feature = self.checkbox_group[feature_name].get_checked_keys(nom_denom_key_suffix, feature_name)
         return selected_feature
 
-    @staticmethod
-    def update_selected_slider_and_years(slider_index):
-        st.session_state["selected_slider"] = slider_index
-        if slider_index == 1:
-            st.session_state["year_1"] = st.session_state["year_2"] = int(st.session_state.slider_year_1)
-        else:
-            st.session_state["year_1"], st.session_state["year_2"] = int(st.session_state.slider_year_2[0]), int(st.session_state.slider_year_2[1])
-
-
     def animation_slider_changed(self):
         st.session_state["animate"] = True
 
-    @staticmethod
-    def sidebar_controls_basic_setup(*args):
-        """
-           Renders the sidebar controls
-           Parameters: starting year, ending year
-        """
-        # Inject custom CSS to set the width of the sidebar
-        #   st.markdown("""<style>section[data-testid="stSidebar"] {width: 300px; !important;} </style> """,  unsafe_allow_html=True)
-        if "visualization_option" not in st.session_state:
-            st.session_state["visualization_option"] = "matplotlib"
-        start_year = args[0]
-        end_year = args[1]
-        with (st.sidebar):
-            st.header('Visualization options')
-             # if ifadesine gerek olmadığı düşünülerek (hata olursa bu if kalktığı için olabilir) metot classmethod'dan static'e dönüştü. Böylelikle higher-education kullanabildi.
-            # options= list(range(start_year, end_year + 1)) if cls.page_name != "sex_age_edu_elections" else [2018,2023]
-            options = list(range(start_year, end_year + 1))
-            # Create a slider to select a single year
-            st.select_slider("Select a year", options, 2023, on_change=BasePage.update_selected_slider_and_years, args=[1],  key="slider_year_1")
-            # Create sliders to select start and end years
-            st.select_slider("Or select start and end years",options, [options[0],options[-1]],on_change=BasePage.update_selected_slider_and_years, args=[2], key="slider_year_2")
-
-            if "selected_slider" not in st.session_state:
-                st.session_state["selected_slider"] = 1
-            BasePage.update_selected_slider_and_years(st.session_state["selected_slider"])
-
-            if st.session_state["selected_slider"] == 1:
-                st.write("You have selected a single year from the first slider.")
-                st.write("Selected year:", st.session_state["year_1"])
-            else:
-                st.write("You have selected start and end years from the second slider.")
-                st.write("Selected start year:", st.session_state["year_1"], "\nSelected end year:", st.session_state["year_2"])
-
-            # Main content
-            if "animation_images_generated" not in st.session_state:
-                st.session_state["animation_images_generated"] = False
-
     def sidebar_controls(self, *args):  # start_year=2007,end_year=2023
-        self.sidebar_controls_basic_setup(*args)
+        sidebar_controls_basic_setup(*args)
         self.sidebar_controls_plot_options_setup(*args)
 
     def sidebar_controls_plot_options_setup(self,*args):
@@ -193,21 +113,6 @@ class BasePage(ABC):
             #cls.checkb ox_group[feature_name].checked_dict[nom_denom_key_suffix][key] = val
        #1 print("$$$",nom_denom_key_suffix,"$$$",cls.checkbox_group[feature_name].checked_dict[nom_denom_key_suffix])
 
-    def figure_setup(self,display_change=False):
-        if st.session_state["visualization_option"] != "matplotlib":
-            return None, None
-        if st.session_state["year_1"] == st.session_state["year_2"] or st.session_state["selected_slider"] == 1 or \
-                st.session_state["animate"]:
-            n_rows = 1
-        elif display_change:
-            n_rows = 3
-        else:
-            n_rows = 2
-        fig, axs = plt.subplots(n_rows, 1, squeeze=False, figsize=(10, 4 * n_rows),
-                                gridspec_kw={'wspace': 0, 'hspace': 0.1})  # axs has size (3,1)
-        # fig.subplots_adjust(left=0.2, bottom=0.2, right=0.8, top=0.8, wspace=0.5, hspace=0.5)
-        return fig, axs
-
     @abstractmethod
     def preprocess_clustering(self, df, *args):
         pass    # Overriden by sub-classes Base_Page_Names & Base_Page_Common
@@ -220,31 +125,23 @@ class BasePage(ABC):
         engine_class = get_engine_class(clustering_algorithm)
         n_clusters = st.session_state["n_clusters"] = kwargs["n_clusters"]
         df_pivot = self.preprocess_clustering(df, *args)
-        engine = None  # Single engine object will be initialized later if not optimal_k_analysis or use_consensus_labels
+        engine =  engine_class(**kwargs)  # Single engine object will be initialized later if not optimal_k_analysis or use_consensus_labels
         save_folder = "results/files"
         if save_sub_folder != "":
             save_folder = f"results/files/{save_sub_folder}/{engine_class.__name__}"
         # 1. Run clustering: Preprocess
-     #   pca = PCA(n_components=50)
-      #  temp= pca.fit_transform(df_pivot.iloc[:, :-1])
-       # df_pivot = pd.DataFrame(temp,index=df_pivot.index )
-
         # If optimal_k_analysis is selected or use_consensus_labels is checked but it is not present(optimal_k_analysis has not previously run)
         if run_optimal_k_analysis:
             k_values = list(range(2, 11)) if not (engine_class is HierarchicalBaseClusteringEngine) else range(n_clusters, n_clusters + 1)
             random_states = range(st.session_state["number_of_seeds"]) if engine_class.__name__ != "HierarchicalClusteringEngine" else range(1)
             num_seeds_to_plot = 3 if engine_class.__name__ != "HierarchicalClusteringEngine" else 1
             scaler,  year1, year2 = st.session_state['scaler'], st.session_state["year_1"], st.session_state["year_2"]
-            st.write(f"Running optimal k analysis for {engine_class.__name__}, scaler = {scaler}, year1={year1}, year2={year2}")
             saved_file_suffix=f"{scaler}_{year1}_{year2}"
             df_summary, metrics_all, metrics_mean, ari_mean, ari_std, consensus_labels_all = engine_class.optimal_k_analysis(df_pivot, random_states, k_values, kwargs, save_folder, saved_file_suffix)
             df_pivot["clusters"] = consensus_labels_all[n_clusters]
+            st.write(f"Running optimal k analysis for {engine_class.__name__}, scaler = {scaler}, year1={year1}, year2={year2}")
             OptimalKPlotter.plot_optimal_k_analysis(engine_class, num_seeds_to_plot, k_values, random_states, metrics_all, metrics_mean, ari_mean, ari_std, kwargs)
-            col1, col2 = st.columns(2)
-            col1.write("Formatted results")
-            col1.dataframe(OptimalKPlotter.style_metrics_dataframe(df_summary))
-            col2.write("Raw results")
-            col2.dataframe(df_summary)
+            OptimalKPlotter.print_optimal_k_analysis(df_summary)
         elif use_consensus:
             df_pivot["clusters"] = engine_class.load_consensus_labels(kwargs, save_folder)
             st.header("Using previously saved consensus labels")
@@ -253,8 +150,6 @@ class BasePage(ABC):
             if silhouette_analysis:
                 engine_class.silhouette_analysis(df_pivot, kwargs=kwargs)
                 return
-            kwargs["n_clusters"] = n_clusters
-            engine = get_engine_class(clustering_algorithm)(**kwargs)
             labels = engine.fit_predict(df_pivot)
             df_pivot["clusters"] = labels
            # st.dataframe(engine.probabilities(df_pivot.drop(columns=["clusters"])))
@@ -297,25 +192,3 @@ class BasePage(ABC):
             GeoClusterPlotter(CLUSTER_COLOR_MAPPING, HA_POSITIONS, VA_POSITIONS).plot_cluster_map(self.gdf_clusters, self.gdf_centroids, st.session_state["n_clusters"], year_label)
             #GeoClusterPlotter(self.CLUSTER_COLOR_MAPPING, self.HA_POSITIONS, self.VA_POSITIONS).plot_elections(self.gdf_clusters)
         col_df.dataframe(df_clusters)
-
-    def run_clustering(self, df_pivot, clustering_algorithm):
-        """
-        Delegates clustering execution to the unified Clustering factory.
-        """
-        # 1. Gather parameters from session state
-        n_init = st.session_state["n_init_" + self.page_name]
-        n_clusters = st.session_state["n_clusters_" + self.page_name]
-        # 2. Prepare kwargs for the engine
-        # Only pass n_clusters/n_init for algorithms that support it (KMeans, GMM)
-        # DBSCAN parameters are typically handled internally by the DBSCANEngine or session state
-        kwargs = {}
-        if clustering_algorithm in ["kmeans", "gmm"]:
-            kwargs = {"n_clusters": n_clusters, "n_init": n_init}
-        # 3. Call the Factory Method
-        # The Clustering class handles engine selection and .fit() execution
-        # fit() returns (df_pivot, closest_indices)
-        engine = BaseClustering.get_engine_class(clustering_algorithm)(**kwargs)
-        labels = engine.fit_predict(df_pivot)
-        df_out=df_pivot.copy()
-        df_out["clusters"] = labels["clusters"]
-        return df_out

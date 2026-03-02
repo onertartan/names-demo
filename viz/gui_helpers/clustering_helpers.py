@@ -67,8 +67,8 @@ def gui_options_kmeans():
 def gui_options_kmedoids():
     n_clusters = st.number_input("Number of clusters", 2, 15, 4, key="n_cluster_kmedoids")
     max_iter = st.number_input("Maximum number of iteration", 10, 300, 100, key="max_iter_kmedoids")
-    metric = st.selectbox("Distance metric", ["cosine"], help="Cosine: profile similarity;", key="distance_metric_pam")
-    return {"n_clusters": n_clusters, "metric": metric, "max_iter": max_iter, "method": "pam"}
+   # metric = st.selectbox("Distance metric", ["cosine"], help="Cosine: profile similarity;", key="distance_metric_pam")
+    return {"n_clusters": n_clusters, "metric": "cosine", "max_iter": max_iter, "method": "pam"}
 
 
 def gui_options_spectral():

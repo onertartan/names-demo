@@ -1,5 +1,53 @@
-,2,3,4,5,6,7,8,9,10,11,12,13,14
-Silhouette_mean (cosine),0.48,0.38,0.35,0.32,0.31,0.27,0.24,0.23,0.23,0.23,0.24,0.25,0.25
-Silhouette_mean (euclidean),0.3,0.23,0.21,0.19,0.18,0.16,0.14,0.13,0.14,0.14,0.14,0.15,0.15
-ARI_mean,1.0,0.7,0.97,0.69,0.68,0.65,0.77,0.84,0.89,0.93,0.96,0.95,1.0
-scaler,TF-IDF,L2 Normalization,L2 Normalization,L2 Normalization,L2 Normalization,L2 Normalization,Share of Top 30 (L1 Norm),Share of Top 30 (L1 Norm),L2 Normalization,Share of Top 30 (L1 Norm),Share of Top 30 (L1 Norm),Share of Top 30 (L1 Norm),Share of Top 30 (L1 Norm)
+k,Silhouette_mean (cosine),Silhouette_mean (euclidean),ARI_mean,scaler
+2,0.48,0.3,1.0,TF-IDF
+2,0.48,0.3,1.0,Share of Total
+2,0.48,0.3,1.0,Share of Top 30 (L1 Norm)
+2,0.48,0.3,1.0,L2 Normalization
+3,0.38,0.23,0.7,L2 Normalization
+3,0.38,0.22,0.7,Share of Top 30 (L1 Norm)
+3,0.38,0.21,0.7,Share of Total
+3,0.32,0.19,0.62,TF-IDF
+4,0.35,0.21,0.97,L2 Normalization
+4,0.35,0.2,0.97,Share of Top 30 (L1 Norm)
+4,0.35,0.19,0.97,Share of Total
+4,0.3,0.18,1.0,TF-IDF
+5,0.32,0.19,0.69,L2 Normalization
+5,0.32,0.18,0.69,Share of Top 30 (L1 Norm)
+5,0.32,0.18,0.69,Share of Total
+5,0.28,0.17,0.74,TF-IDF
+6,0.31,0.18,0.68,L2 Normalization
+6,0.31,0.17,0.68,Share of Top 30 (L1 Norm)
+6,0.31,0.17,0.68,Share of Total
+6,0.28,0.16,0.77,TF-IDF
+7,0.27,0.16,0.65,L2 Normalization
+7,0.27,0.16,0.65,Share of Top 30 (L1 Norm)
+7,0.27,0.15,0.65,Share of Total
+7,0.24,0.14,0.68,TF-IDF
+8,0.24,0.14,0.77,Share of Top 30 (L1 Norm)
+8,0.24,0.14,0.77,L2 Normalization
+8,0.24,0.14,0.77,Share of Total
+8,0.22,0.13,0.66,TF-IDF
+9,0.23,0.13,0.84,Share of Top 30 (L1 Norm)
+9,0.23,0.13,0.84,L2 Normalization
+9,0.23,0.13,0.84,Share of Total
+9,0.21,0.12,0.71,TF-IDF
+10,0.23,0.14,0.89,L2 Normalization
+10,0.23,0.14,0.89,Share of Top 30 (L1 Norm)
+10,0.23,0.13,0.89,Share of Total
+10,0.21,0.12,0.71,TF-IDF
+11,0.23,0.14,0.93,Share of Top 30 (L1 Norm)
+11,0.23,0.14,0.93,L2 Normalization
+11,0.23,0.13,0.93,Share of Total
+11,0.21,0.12,0.73,TF-IDF
+12,0.24,0.14,0.96,Share of Top 30 (L1 Norm)
+12,0.24,0.14,0.96,L2 Normalization
+12,0.24,0.14,0.96,Share of Total
+12,0.21,0.12,0.76,TF-IDF
+13,0.25,0.15,0.95,Share of Top 30 (L1 Norm)
+13,0.25,0.15,0.95,L2 Normalization
+13,0.25,0.14,0.95,Share of Total
+13,0.22,0.13,0.8,TF-IDF
+14,0.25,0.15,1.0,Share of Top 30 (L1 Norm)
+14,0.25,0.15,1.0,L2 Normalization
+14,0.25,0.14,1.0,Share of Total
+14,0.23,0.13,0.84,TF-IDF

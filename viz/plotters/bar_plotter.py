@@ -47,7 +47,7 @@ class MatplotlibPlotter(BarPlotter):
                 f"{height:.1f}%",
                 ha="center",
                 va="bottom",
-                fontsize=9,
+                fontsize=14,
             )
 
         plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
@@ -82,7 +82,7 @@ class SeabornPlotter(BarPlotter):
                 f"{bar.get_height():.1f}%",
                 ha="center",
                 va="bottom",
-                fontsize=9,
+                fontsize=14,
             )
 
         plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
@@ -102,7 +102,6 @@ class PlotlyPlotter(BarPlotter):
     ) -> None:
         print("PLOTLYY",df.head())
         import plotly.express as px
-        print("KJKJ",df.index)
         fig = px.bar(
             df,
             x="province",
@@ -141,7 +140,7 @@ class PandasPlotter(BarPlotter):
                 f"{bar.get_height():.1f}%",
                 ha="center",
                 va="bottom",
-                fontsize=9,
+                fontsize=14,
             )
 
         plt.setp(ax.get_xticklabels(), rotation=45, ha="right")
@@ -168,7 +167,7 @@ class AltairPlotter(BarPlotter):
             alt.Chart(df)
             .mark_bar()
             .encode(
-                x=alt.X("province:N", sort="-y", axis=alt.Axis(labelAngle=-90)),
+                x=alt.X("province:N", sort="-y", axis=alt.Axis(labelAngle=-90),   labelFontSize=12,  titleFontSize=14),
                 y=alt.Y("percentage:Q", axis=alt.Axis(format=".1f", labelExpr="datum.value + '%'")),
                 tooltip=["province", alt.Tooltip("percentage:Q", format=".1f", title="percentage")],
             )

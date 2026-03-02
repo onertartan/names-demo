@@ -1,9 +1,7 @@
 from sklearn import preprocessing
 import os
 import time
-import numpy as np
 import pandas as pd
-import streamlit as st
 import streamlit.components.v1 as components
 from PIL import Image
 from folium import GeoJsonPopup, GeoJsonTooltip
@@ -16,50 +14,12 @@ import folium
 from modules.base_page import BasePage
 import plotly.graph_objects as go
 import plotly.express as px
-import extra_streamlit_components as stx
-import streamlit as st
-from viz.gui_helpers.gui_common_pages_basic_setup import gui_basic_setup
+
+from viz.gui_helpers.ui_base_page import sidebar_controls_basic_setup, figure_setup
+from viz.gui_helpers.ui_base_page_common import *
 
 class PageCommon(BasePage):
 
-    def sidebar_controls_plot_options_setup(self, *args):
-        with (st.sidebar):
-            if "selected_tab" not in st.session_state:
-                st.session_state["selected_tab"] = "map"
-
-            tabs = [stx.TabBarItemData(id="map", title="Map/Race plot", description="")]
-            if st.session_state["page_name"] in ["sex_age", "marital_status"]:
-                tabs.append(stx.TabBarItemData(id="pyramid", title="Pop. Pyramid", description=""))
-
-            #   tab_map, tab_pyramid= st.tabs(["Map", "Population pyramid"])
-            st.session_state["selected_tab"] = stx.tab_bar(data=tabs, default="map")
-
-            if st.session_state["selected_tab"] == "map":
-                st.session_state["visualization_option"] = st.radio("Choose visualization option",
-                                                                    ["Matplotlib", "Folium",
-                                                                     "Raceplotly"]).lower()
-            else: # There are two option for population pyramid
-                st.session_state["visualization_option"] = st.radio("Choose visualization option",
-                                                                    ["Matplotlib", "Plotly"]).lower()
-
-            if st.session_state["visualization_option"] != "raceplotly":
-
-                    # Dropdown menu for colormap selection
-                    st.selectbox("Select a colormap\n (colormaps in the red boxes are available only for matplotlib) ",
-                                 st.session_state["colormap"][st.session_state["visualization_option"]],
-                                 key="selected_cmap")
-                    # Display a static image
-                    st.image("images/colormaps.jpg")
-
-    def _apply_custom_css(self):
-        """Sayfa için gerekli CSS stillerini tek bir yerden yönetir."""
-        st.markdown("""
-            <style> 
-                .main > div {padding-left:1rem; padding-right:1rem; padding-top:4rem;}
-                [role=radiogroup] { gap: 0rem; }
-                [data-testid="stHorizontalBlock"] { align-items: top; }
-            </style>
-        """, unsafe_allow_html=True)
     def _render_map_tab(self, df_data, cols_nom_denom, gdf_borders):
         with st.form("submit_form"):
             (col_show_results, col_animation) = st.columns(2)
@@ -83,6 +43,7 @@ class PageCommon(BasePage):
                 col_plot, col_df = st.columns((4, 1), gap="small")
                 print("df_data : LOL", df_data["denominator"]["district"])
                 self.plot_main(col_plot, col_df, df_data, gdf_borders, selected_features,  [st.session_state["geo_scale"]])
+
     def _render_clustering_tab(self, df_data, cols_nom_denom, geo_scale):
         selected_features = self.get_selected_features(cols_nom_denom)
         years_selected = sorted({st.session_state["year_1"], st.session_state["year_2"]})
@@ -90,7 +51,7 @@ class PageCommon(BasePage):
         self.tab_clustering(df_result, "",df_data, years_selected, selected_features, geo_scale)
 
     def render(self):
-        self._apply_custom_css()
+        apply_custom_css()
         st.session_state["geo_scale"] = self.top_row_cols[0].radio("Choose geographic scale",self.geo_scales).split()[0]
         self.fun_extras() # for optional columns at the top row
         cols_nom_denom = gui_basic_setup(self.col_weights)
@@ -102,8 +63,8 @@ class PageCommon(BasePage):
         # determine year interval
         start_year = df_data["nominator"][geo_scale].index.get_level_values(0).min()
         end_year = df_data["nominator"][geo_scale].index.get_level_values(0).max()
-        self.sidebar_controls(start_year, end_year)# File: viz/gui_helpers/clustering_helpers.py
-
+        sidebar_controls_basic_setup(start_year, end_year)# File: viz/gui_helpers/clustering_helpers.py
+        sidebar_controls_plot_options_setup()
 
         tabs = [stx.TabBarItemData(id="tab_map", title="Map Plot", description="") ,
                 stx.TabBarItemData(id="tab_geo_clustering", title="Geographical Clustering", description="")]
@@ -118,7 +79,7 @@ class PageCommon(BasePage):
 
 
     # Overriden method
-    def preprocess_clustering(self, df_result,df_data,years, selected_features, geo_scale):
+    def preprocess_clustering(self, df_result, df_data, years, selected_features, geo_scale):
         numeric_cols = list(df_result.select_dtypes(include=['number']).columns)
         df_pivot= df_result.loc[:, numeric_cols]
         if st.session_state["display_percentage"]:
@@ -291,7 +252,7 @@ class PageCommon(BasePage):
                     years_selected = list( range(st.session_state["slider_year_2"][0], st.session_state["slider_year_2"][1] + 1))
                     df_result = self.get_df_result(df_data, selected_features, geo_scale, years_selected)
 
-                fig, axs = self.figure_setup((st.session_state["year_1"] != st.session_state["year_2"]))
+                fig, axs = figure_setup((st.session_state["year_1"] != st.session_state["year_2"]))
                 self.plot_map_generic(col_plot, col_df, gdf_borders, df_result, geo_scale, plotter, years_selected, fig, axs)
 
                 if st.session_state["animate"]:
