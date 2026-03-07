@@ -106,7 +106,7 @@ def gui_options_hierarchical():
         ), key="use_fixed_k_hierarchical"
     )
 
-    k = None
+    k = 15
     if use_fixed_k:
         k = st.slider(
             "Number of clusters (k)",
@@ -117,7 +117,7 @@ def gui_options_hierarchical():
             help="Used only for comparison with other clustering methods.",
             key="n_cluster_hierarchical"
         )
-    return {"metric": metric, "linkage_method": linkage_method}
+    return {"metric": metric, "linkage_method": linkage_method,"n_clusters": k}
 
 def dbscan_gui_options():
     """

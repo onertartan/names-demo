@@ -52,6 +52,9 @@ class GMMEngine(BaseClustering):
 
 
 
+    def get_centroids(self, X):
+        return self.model.means_
+
     def probabilities(self, df: pd.DataFrame) -> np.ndarray:
         """
         Get the posterior probabilities of each sample belonging to each cluster.

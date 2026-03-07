@@ -13,6 +13,8 @@ from viz.gui_helpers.clustering_helpers import *
 from viz.gui_helpers.ui_base_page import sidebar_controls_basic_setup
 from viz.plotters.geo_cluster_plotter import GeoClusterPlotter
 from viz.config import COLORS, CLUSTER_COLOR_MAPPING, VA_POSITIONS, HA_POSITIONS
+from viz.plotters.network_plotter import plot_cluster_network, plot_cluster_mds, plot_clustered_heatmap, plot_umap_tsne
+
 
 class BasePage(ABC):
     features = None
@@ -37,17 +39,13 @@ class BasePage(ABC):
     def gdf(self):
         return BasePage.load_geo_data()
 
-    def load_data(self):
-        if self.data is None:
-            self.data = self.get_data()
-        return self.data
-
-    @st.cache_data
+    @abstractmethod
     def get_data(self, geo_scale=None):
-        """Base implementation (override in subclasses)"""
-        if self.data is None:
-            raise NotImplementedError("Subclasses must implement get_data")
-        return self.data
+        pass # overridden in sub-classes
+
+    @property
+    def data(self):
+        return self.get_data()
 
     @property
     def gdf_clusters(self):
@@ -70,7 +68,7 @@ class BasePage(ABC):
 
     def run(self):
         st.session_state["page_name"] = self.page_name
-        self.load_data()
+        self.get_data()
         self.render()
 
     def get_selected_features(self, cols_nom_denom):
@@ -152,6 +150,12 @@ class BasePage(ABC):
                 return
             labels = engine.fit_predict(df_pivot)
             df_pivot["clusters"] = labels
+            df_distances = engine.pairwise(df_pivot,"cosine")
+            plot_cluster_network(df_distances)
+            plot_cluster_mds(df_distances)
+            plot_clustered_heatmap(df_distances)
+            plot_umap_tsne(df_pivot.copy(), CLUSTER_COLOR_MAPPING)
+
            # st.dataframe(engine.probabilities(df_pivot.drop(columns=["clusters"])))
             #st.dataframe(df_pivot)
         # Step: Update geodata
@@ -166,16 +170,19 @@ class BasePage(ABC):
         if st.session_state.get("selected_tab_" + self.page_name, "") == "tab_geo_clustering":
             # Step-6: Render geo-cluster plots
             self.render_geo_clustering_plots(df_pivot, col_plot, col_df, df)
+        with col_plot:
+            self.tab_clustering_pca(df_pivot)
+
+    def tab_clustering_pca(self,df_pivot):
         #PLOT PCA
         df_clusters = df_pivot["clusters"]
         df_features = df_pivot.drop(columns=["clusters"])
-        with col_plot:
-            total_points = len(df_clusters)
-            factor = .1 if self.page_name == "names_surnames" else 1
-            dense_threshold = total_points / (10 * factor) if st.session_state.get("selected_tab_" + self.page_name,"no_tab") != "tab_map" else 100  # Define thresholds
-            mid_threshold = total_points / (20 * factor) if st.session_state.get("selected_tab_" + self.page_name,"no_tab") != "tab_map" else 100  #
-            title= f"PCA of provincial name-distribution profiles (2018–2024)" if self.page_name in ["names_surnames","baby_names"] else f"PCA of feature profiles"
-            PCAPlotter().plot_pca(df_features, df_clusters,dense_threshold, mid_threshold, COLORS,title)
+        total_points = len(df_clusters)
+        factor = .1 if self.page_name == "names_surnames" else 1
+        dense_threshold = total_points / (10 * factor) if st.session_state.get("selected_tab_" + self.page_name,"no_tab") != "tab_map" else 100  # Define thresholds
+        mid_threshold = total_points / (20 * factor) if st.session_state.get("selected_tab_" + self.page_name,"no_tab") != "tab_map" else 100  #
+        title= f"PCA of provincial name-distribution profiles (2018–2024)" if self.page_name in ["names_surnames","baby_names"] else f"PCA of feature profiles"
+        PCAPlotter().plot_pca(df_features, df_clusters,dense_threshold, mid_threshold, COLORS,title)
 
     def render_geo_clustering_plots(self, df_pivot, col_plot, col_df, df_original):
         """Tab-1 Step-6:   plot clusters and show clusters dataframe."""

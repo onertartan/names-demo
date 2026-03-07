@@ -22,12 +22,12 @@ class HierarchicalBaseClusteringEngine(BaseClustering):
 
     def __init__(
         self,
-        n_cluster: int,
+        n_clusters: int,
         metric: str,
         linkage_method: str,
         random_state: int = -1 # included for interface compatibility
     ):
-        self.n_clusters = n_cluster
+        self.n_clusters = n_clusters
         self.metric = metric
         self.linkage_method = "average"
         self.Z = None
@@ -41,9 +41,9 @@ class HierarchicalBaseClusteringEngine(BaseClustering):
         D = pdist(df, metric=self.metric)
         self.Z = linkage(D, method=self.linkage_method)
         # ---- cut at externally specified k ----
-        labels = fcluster(self.Z, t=self.n_clusters, criterion="maxclust") -1
+        labels = fcluster(self.Z, t=self.n_clusters, criterion="maxclust") -1# already 1-based, so we subtract 1, it is incremented again in optimal_k_analysis
         df_out = df.copy()
-        df_out["clusters"] = labels# already 1-based, so we subtract 1, it is incremented again in optimal_k_analysis
+        df_out["clusters"] = labels
         self.plot_dendrogram(df.index)
         return df_out
 

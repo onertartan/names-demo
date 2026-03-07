@@ -28,5 +28,6 @@ class ElectionSexAgeEdu(PageCommon):
         df_data = {"denominator": df, "nominator": df}
         return df_data
 
-ElectionSexAgeEdu.run();
+
+ElectionSexAgeEdu().run()
 

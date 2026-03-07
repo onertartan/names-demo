@@ -1,3 +1,5 @@
+import networkx as nx
+from sklearn.metrics import pairwise_distances
 from typing import List
 import time
 import streamlit as st
@@ -80,7 +82,7 @@ class BaseClustering:
             return representatives
         # 3. SPECTRAL: highest silhouette
         if self.__class__.__name__ == "SpectralClusteringEngine":
-            sil = silhouette_samples(df_features.values,labels.values, metric =  self.metric_for_silhouette  )
+            sil = silhouette_samples(df_features.values, labels.values, metric =  self.metric_for_silhouette  )
             sil_series = pd.Series(sil, index=df_features.index)
             representatives = []
             for cid in unique_clusters:
@@ -324,6 +326,22 @@ class BaseClustering:
             ax1.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
         col1,_=st.columns([9,1])
         col1.pyplot(fig)
+
+    def pairwise(self, X, metric="euclidean"):
+
+        centroids = self.get_centroids(X)
+
+        D = pairwise_distances(centroids, metric=metric)
+
+        k = centroids.shape[0]
+
+        labels = [f"C{i + 1}" for i in range(k)]
+
+        return pd.DataFrame(D, index=labels, columns=labels)
+
+
+
+
 
     # Not used
     @staticmethod

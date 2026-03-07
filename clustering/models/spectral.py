@@ -39,6 +39,9 @@ class SpectralClusteringEngine(BaseClustering):
         labels = self.model.fit_predict(df_out) + 1
         return labels
 
+    def get_centroids(self, df_pivot):
+        return df_pivot.groupby("clusters").mean()
+
     @classmethod
     def optimal_k_analysis(cls,
         df: pd.DataFrame,

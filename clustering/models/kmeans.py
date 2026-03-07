@@ -33,7 +33,8 @@ class KMeansEngine(BaseClustering):
         self.model = KMeans(n_clusters=n_clusters, n_init=n_init, init="k-means++", random_state=random_state)
         self.metric_for_silhouette = "euclidean"
     # ------------------------------------------------------------------
-
+    def get_centroids(self, X):
+        return self.model.cluster_centers_
 
     # ------------------------------------------------------------------
     @staticmethod
