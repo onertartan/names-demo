@@ -6,7 +6,7 @@ numpy==1.26.4
 pandas==2.2.2
 plotly==5.23.0
 raceplotly==0.1.7
-scikit_learn==1.5.2
+scikit_learn>=1.6
 streamlit==1.37.1
 streamlit_folium==0.22.0
 openpyxl
