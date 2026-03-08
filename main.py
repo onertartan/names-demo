@@ -38,45 +38,8 @@ current_page = st.navigation({
         st.Page("modules/population/names_surnames.py", title="Names and Surnames", icon=":material/public:")]
 
     })
-"""
-current_page = st.navigation({
-    "Population": [
-        st.Page("modules/population/baby_names.py", title="Baby Names ", icon=":material/public:"),
-        st.Page("modules/population/birth.py", title="Birth", icon=":material/public:"),
-        st.Page("modules/population/death_month.py", title="Death-Month", icon=":material/public:"),
-        st.Page("modules/population/names_surnames.py", title="Names and Surnames", icon=":material/public:"),
-        st.Page("modules/population/sex_age.py", title="Sex-Age ", icon=":material/public:"),
-        st.Page("modules/population/marital_status.py", title="Sex-Age-Marital status(over age 15) ", icon=":material/wc:")],
-    "Elections": [ st.Page("modules/elections/sex_age_edu.py", title="Sex-Age-Edu ", icon=":material/public:"),
-                   st.Page("modules/elections/election_correlation.py", title="Correlations", icon=":material/public:")
-                 #  st.Page("modules/elections/parties_alliances.py", title="Parties & Alliances ", icon=":material/public:")
-                  ],
-    "Higher Education": [st.Page("modules/higher_education/timeline_view.py", title="Timeline View", icon=":material/public:"),
-                         st.Page("modules/higher_education/migration.py", title="Migration",icon=":material/public:"),
-                         st.Page("modules/higher_education/quota_occupancy.py", title="Quota Occupancy", icon=":material/public:")
-                         ]
 
-    })
-"""
 
-current_page = st.navigation({
-    "Population": [
-        st.Page("modules/population/baby_names.py", title="Baby Names ", icon=":material/public:"),
-        st.Page("modules/population/birth.py", title="Birth", icon=":material/public:"),
-        st.Page("modules/population/death_month.py", title="Death-Month", icon=":material/public:"),
-        st.Page("modules/population/names_surnames.py", title="Names and Surnames", icon=":material/public:"),
-        st.Page("modules/population/sex_age.py", title="Sex-Age ", icon=":material/public:"),
-        st.Page("modules/population/marital_status.py", title="Sex-Age-Marital status(over age 15) ", icon=":material/wc:")],
-    "Elections": [ st.Page("modules/elections/sex_age_edu.py", title="Sex-Age-Edu ", icon=":material/public:"),
-                   st.Page("modules/elections/election_correlation.py", title="Correlations", icon=":material/public:")
-                 #  st.Page("modules/elections/parties_alliances.py", title="Parties & Alliances ", icon=":material/public:")
-                  ],
-    "Higher Education": [st.Page("modules/higher_education/timeline_view.py", title="Timeline View", icon=":material/public:"),
-                         st.Page("modules/higher_education/migration.py", title="Migration",icon=":material/public:"),
-                         st.Page("modules/higher_education/quota_occupancy.py", title="Quota Occupancy", icon=":material/public:")
-                         ]
-
-    })
 current_page.run()
 
 
