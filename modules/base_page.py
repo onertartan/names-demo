@@ -5,6 +5,8 @@ import pandas as pd
 import geopandas as gpd
 # Visualization
 import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+
 from clustering.models.factory import get_engine_class
 from clustering.models.hierarchical import HierarchicalBaseClusteringEngine
 from viz import PCAPlotter, OptimalKPlotter
@@ -148,6 +150,7 @@ class BasePage(ABC):
             if silhouette_analysis:
                 engine_class.silhouette_analysis(df_pivot, kwargs=kwargs)
                 return
+
             labels = engine.fit_predict(df_pivot)
             df_pivot["clusters"] = labels
             df_distances = engine.pairwise(df_pivot,"cosine")

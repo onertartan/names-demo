@@ -108,7 +108,7 @@ def plot_clustered_heatmap(distance_df, title="Inter-Cluster Distance Map"):
     fig.tight_layout()
     st.pyplot(fig)
 
-def plot_umap_tsne(df_pivot, CLUSTER_COLOR_MAPPING, methods=["umap"],title="Provincial Name Profiles (UMAP)"):
+def plot_umap_tsne(df_pivot, CLUSTER_COLOR_MAPPING, methods=["umap" ],title="Provincial Name Profiles (UMAP)"):
     BG       = "#0f1117"
     PANEL_BG = "#1a1d27"
     ACCENT   = "#c9a96e"
@@ -122,10 +122,12 @@ def plot_umap_tsne(df_pivot, CLUSTER_COLOR_MAPPING, methods=["umap"],title="Prov
     labels = df_pivot["clusters"]
     n_clusters = df_pivot["clusters"].max()
     # ── Step 1: PCA to 50 dimensions ─────────────────────────────────
-    pca = PCA(n_components=50, random_state=42)
+    n_pca = 80
+    st.header(str(df_features.shape))
+    pca = PCA(n_components=n_pca, random_state=42)
     coords_pca = pca.fit_transform(df_features.values)
     explained = pca.explained_variance_ratio_.sum()
-    st.caption(f"PCA retains {explained:.1%} of variance in 50 components")
+    st.caption(f"PCA retains {explained:.1%} of variance in {n_pca} components")
 
     # ── Step 2: Compute both embeddings ───────────────────────────────────────
     coords_umap = umap.UMAP(n_components=2,
@@ -175,4 +177,5 @@ def plot_umap_tsne(df_pivot, CLUSTER_COLOR_MAPPING, methods=["umap"],title="Prov
             spine.set_edgecolor("#2e3245")
 
     fig.tight_layout()
+    fig.savefig(f"temp/umap.png", dpi=300, bbox_inches="tight")
     st.pyplot(fig)

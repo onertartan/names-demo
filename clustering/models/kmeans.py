@@ -35,39 +35,3 @@ class KMeansEngine(BaseClustering):
     # ------------------------------------------------------------------
     def get_centroids(self, X):
         return self.model.cluster_centers_
-
-    # ------------------------------------------------------------------
-    @staticmethod
-    def relabel_with_priority(labels: pd.Series, priority_list: List[str]) -> List[int]:
-        """
-        Optional: deterministic label remapping.
-
-        Useful when you want certain provinces to define cluster order.
-
-        Parameters
-        ----------
-        labels : pd.Series
-            Original labels indexed by province name.
-        priority_list : List[str]
-            Provinces in the desired label order.
-
-        Returns
-        -------
-        new_labels : List[int]
-        """
-        mapping = {}
-        next_new = 1  # labels will be 1..K
-
-        # priority first
-        for prov in priority_list:
-            old_lbl = labels.loc[prov]
-            if old_lbl not in mapping:
-                mapping[old_lbl] = next_new
-                next_new += 1
-
-        # remaining clusters
-        for old_lbl in sorted(set(labels) - set(mapping)):
-            mapping[old_lbl] = next_new
-            next_new += 1
-
-        return labels.map(mapping).tolist()
