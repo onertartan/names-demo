@@ -153,20 +153,16 @@ class BasePage(ABC):
 
             labels = engine.fit_predict(df_pivot)
             df_pivot["clusters"] = labels
-            df_distances = engine.pairwise(df_pivot,"cosine")
-            plot_cluster_network(df_distances)
-            plot_cluster_mds(df_distances)
-            plot_clustered_heatmap(df_distances)
-            plot_umap_tsne(df_pivot.copy(), CLUSTER_COLOR_MAPPING)
 
            # st.dataframe(engine.probabilities(df_pivot.drop(columns=["clusters"])))
             #st.dataframe(df_pivot)
         # Step: Update geodata
         if st.session_state.get("selected_tab_" + self.page_name, "") == "tab_geo_clustering" and engine:
             representatives = engine.get_representatives(df_pivot)
+            #df_distances = engine.pairwise(df_pivot,"cosine")
+            plot_umap_tsne(df_pivot.copy(), CLUSTER_COLOR_MAPPING)
         else:
             representatives = None
-        # self.update_geo_cluster_centers(df_pivot, representatives)
         self.gdf_clusters, self.gdf_centroids = engine_class.update_geo_cluster_centers(self.gdf, st.session_state["geo_scale"], df_pivot, representatives)
         # PLOT MAP (if geo-clustering tab is selected)
         col_plot, col_df = st.columns([5, 1])

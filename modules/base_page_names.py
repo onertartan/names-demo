@@ -56,11 +56,7 @@ class PageNames(BasePage):
             df_year_male, df_year_female = df[df["sex"] == "male"].loc[year], df[df["sex"] == "female"].loc[year]
             #     df_year_male = df_year_male[df_year_male["rank"] <= top_n]
             #    df_year_female = df_year_female[df_year_female["rank"] <= top_n]
-            st.header("df_year_male shape:"+str(df_year_male.head()))
-            st.header("Unique male names"+str(df_year_male["name"].nunique()))
-            st.header("Unique female names"+str(df_year_female["name"].nunique()))
 
-            st.header("df_year_female shape:"+str(df_year_female.shape))
 
             overlapping_names = set(df_year_male["name"]) & set(df_year_female["name"])
             df_year_male['name'] = df_year_male.apply(
