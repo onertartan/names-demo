@@ -15,7 +15,8 @@ from viz.gui_helpers.clustering_helpers import *
 from viz.gui_helpers.ui_base_page import sidebar_controls_basic_setup
 from viz.plotters.geo_cluster_plotter import GeoClusterPlotter
 from viz.config import COLORS, CLUSTER_COLOR_MAPPING, VA_POSITIONS, HA_POSITIONS
-from viz.plotters.network_plotter import plot_cluster_network, plot_cluster_mds, plot_clustered_heatmap, plot_umap_tsne
+from viz.plotters.network_plotter import plot_cluster_network, plot_clustered_heatmap, plot_umap_tsne, \
+    plot_mds_provinces, plot_custom_silhouette
 
 
 class BasePage(ABC):
@@ -156,22 +157,23 @@ class BasePage(ABC):
 
            # st.dataframe(engine.probabilities(df_pivot.drop(columns=["clusters"])))
             #st.dataframe(df_pivot)
+        # PLOT MAP (if geo-clustering tab is selected)
+        col_plot, col_df = st.columns([5, 1])
         # Step: Update geodata
         if st.session_state.get("selected_tab_" + self.page_name, "") == "tab_geo_clustering" and engine:
             representatives = engine.get_representatives(df_pivot)
             #df_distances = engine.pairwise(df_pivot,"cosine")
-            plot_umap_tsne(df_pivot.copy(), CLUSTER_COLOR_MAPPING)
         else:
             representatives = None
         self.gdf_clusters, self.gdf_centroids = engine_class.update_geo_cluster_centers(self.gdf, st.session_state["geo_scale"], df_pivot, representatives)
-        # PLOT MAP (if geo-clustering tab is selected)
-        col_plot, col_df = st.columns([5, 1])
+
         if st.session_state.get("selected_tab_" + self.page_name, "") == "tab_geo_clustering":
             # Step-6: Render geo-cluster plots
             self.render_geo_clustering_plots(df_pivot, col_plot, col_df, df)
         with col_plot:
-            self.tab_clustering_pca(df_pivot)
-
+            self.tab_clustering_pca(df_pivot.copy())
+            plot_umap_tsne(df_pivot.copy(), CLUSTER_COLOR_MAPPING)
+            plot_mds_provinces(df_pivot)
     def tab_clustering_pca(self,df_pivot):
         #PLOT PCA
         df_clusters = df_pivot["clusters"]
