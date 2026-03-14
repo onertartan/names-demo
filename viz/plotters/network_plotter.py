@@ -121,7 +121,6 @@ def plot_mds_provinces(df_pivot,
     # Fit MDS
     # Fit MDS
     coordinates = mds.fit_transform(X)
-    st.write(mds.dissimilarity_matrix_)
 
     # Create DataFrame with coordinates
     coord_df = pd.DataFrame(

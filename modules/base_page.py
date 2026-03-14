@@ -172,8 +172,9 @@ class BasePage(ABC):
             self.render_geo_clustering_plots(df_pivot, col_plot, col_df, df)
         with col_plot:
             self.tab_clustering_pca(df_pivot.copy())
-            #plot_umap_tsne(df_pivot.copy(), CLUSTER_COLOR_MAPPING)
-            #plot_mds_provinces(df_pivot)
+        return df_pivot
+
+
     def tab_clustering_pca(self,df_pivot):
         #PLOT PCA
         df_clusters = df_pivot["clusters"]

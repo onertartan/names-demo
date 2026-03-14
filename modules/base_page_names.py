@@ -16,6 +16,7 @@ from viz.color_mapping import create_cluster_color_mapping
 from viz.gui_helpers.ui_base_page import province_selector, sidebar_controls_basic_setup, figure_setup
 from viz.gui_helpers.ui_base_page_names import render_tab_selection, render_gender_name_surname_filters, \
     render_top_n_selector, sidebar_controls_plot_options_setup
+from viz.plotters.network_plotter import plot_umap_tsne, plot_mds_provinces
 
 locale.setlocale(locale.LC_ALL, 'tr_TR.utf8')
 
@@ -161,7 +162,11 @@ class PageNames(BasePage):
 
         col_plot, col_df = st.columns([5, 1])
         if tab_selected == "tab_geo_clustering" or tab_selected == "tab_name_clustering":  # Main Tab-1
-            self.tab_clustering(df=df,save_sub_folder=st.session_state["gender_radio_widget_" + self.page_name].lower())
+            df_pivot = self.tab_clustering(df=df,save_sub_folder=st.session_state["gender_radio_widget_" + self.page_name].lower())
+            if tab_selected=="tab_geo_clustering":
+                if df_pivot is not None:
+                    plot_umap_tsne(df_pivot.copy(), CLUSTER_COLOR_MAPPING)
+                    plot_mds_provinces(df_pivot)
         elif tab_selected == "tab_map":  # Main Tab-2: Tab-1
             self.tab_2_map(df)
         elif tab_selected in ["rank_bump", "rank_bar", "custom_bar"]:  # Main Tab-2: Tab 3-4-5
