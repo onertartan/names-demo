@@ -146,9 +146,14 @@ def plot_mds_provinces(df_pivot,
     #  Plot                                                              #
     # ------------------------------------------------------------------ #
     # Define the list of provinces to highlight
-    highlight_provinces = {"Adana": "red", "Adıyaman": "orange", "Artvin": "orange", "Bingöl": "orange",
-                           "Bitlis": "orange", "Burdur": "orange", "Kars": "orange", "Manisa": "orange",
-                           "İstanbul": "orange", "Tunceli": "purple", "Uşak": "orange"}
+    # 2022
+   # highlight_provinces = {"Adana": "red", "Adıyaman": "orange", "Artvin": "orange", "Bingöl": "orange",
+    #                       "Bitlis": "orange", "Burdur": "orange", "Kars": "orange", "Manisa": "orange",
+     #                      "İstanbul": "orange", "Tunceli": "purple", "Uşak": "orange"}
+    # 2023
+    highlight_provinces = dict()
+    #highlight_provinces ={"Adıyaman":"orange", "Ardahan":"orange", "Artvin":"orange", "Bingöl":"orange", "Burdur":"orange",
+    #                      "Kars":"orange", "Uşak":"Orange", "Zonguldak":"orange"}
     annotation_fontsize=4
     if n_components == 2:
         fig, ax = plt.subplots()
@@ -229,6 +234,7 @@ def plot_mds_provinces(df_pivot,
             ax.axhline(0, color="#dddddd", linewidth=0.6)
             ax.axvline(0, color="#dddddd", linewidth=0.6)
             fig.tight_layout()
+            fig.savefig(f"temp/mds2022.png", dpi=300, bbox_inches="tight")
 
             st.pyplot(fig)
         else:
@@ -365,7 +371,6 @@ def plot_clustered_heatmap(distance_df, title="Inter-Cluster Distance Map"):
     n = len(distance_df)
     fig, ax = plt.subplots(figsize=(max(6, n + 2), max(6, n + 2)), facecolor=BG)
     ax.set_facecolor(PANEL_BG)
-    st.dataframe(distance_df)
     # Draw heatmap without annotations first
     sns.heatmap(
         distance_df,
@@ -441,12 +446,12 @@ def plot_umap_tsne(df_pivot, CLUSTER_COLOR_MAPPING, methods=["umap"],title="Proj
     # ── Side by side plot ─────────────────────────────────────────────
 
     # Define the list of provinces to highlight
-    highlight_provinces = {"Adana":"red", "Adıyaman":"yellow", "Artvin":"yellow", "Bingöl":"yellow",
-                           "Bitlis":"yellow", "Burdur":"yellow", "Kars":"yellow", "Manisa":"yellow",
-                           "İstanbul":"red", "Tunceli":"purple", "Uşak":"yellow"}
+    highlight_provinces = dict()
+#    highlight_provinces = {"Adana":"red", "Adıyaman":"yellow", "Artvin":"yellow", "Bingöl":"yellow",
+ #                          "Bitlis":"yellow", "Burdur":"yellow", "Kars":"yellow", "Manisa":"yellow",
+  #                         "İstanbul":"red", "Tunceli":"purple", "Uşak":"yellow"}
 
     # Create boolean mask for highlighted provinces
-    highlight_mask = [province in highlight_provinces for province in df_pivot.index]
 
     fig, axes = plt.subplots(1, len(methods), figsize=(18, 8), facecolor=BG)
     axes = np.atleast_1d(axes)

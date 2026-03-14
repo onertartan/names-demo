@@ -114,7 +114,7 @@ class PCAPlotter:
             fig, axes = plt.subplots(1, 2, figsize=(14, 6), constrained_layout=True)
             axes = np.atleast_1d(axes)  # make iterable safe
 
-            def _plot_2d_panel(ax, X, panel_title: str):
+            def _plot_2d_panel(ax, X, panel_title,x_label="",y_label=""):
                 pca = PCA(n_components=2)
                 scores = pca.fit_transform(X)
                 pc1, pc2 = pca.explained_variance_ratio_[:2]
@@ -124,9 +124,12 @@ class PCAPlotter:
                     c=point_colors, edgecolors="w", linewidths=0.5,
                     alpha=point_alpha, s=60
                 )
-
-                ax.set_xlabel(f"PC1 ({pc1:.2%})")
-                ax.set_ylabel(f"PC2 ({pc2:.2%})")
+                if x_label=="":
+                    ax.set_xlabel(f"PC1 ({pc1:.2%})")
+                    ax.set_ylabel(f"PC2 ({pc2:.2%})")
+                else:
+                    ax.set_xlabel(x_label,fontsize=9)
+                    ax.set_ylabel(y_label, fontsize=9)
                 ax.set_title(f"{panel_title} | PC1+PC2 = {(pc1 + pc2):.2%}", fontsize=11)
                 ax.grid(True, alpha=0.3)
 
@@ -166,10 +169,13 @@ class PCAPlotter:
                 return scores, pca
 
             # ── Plot both panels ──
-            scores_raw, pca_raw = _plot_2d_panel(axes[0], X_raw, raw_label)
+            x_label=""# x_label = "PC1: Southeastern $\\longleftrightarrow$ Western--Central Anatolian(74.6\\%)"
+            y_label=""#y_label= "PC2:  Black Sea Coastal $\\longleftrightarrow$ Southeastern(9.6\\%)"
+            scores_raw, pca_raw = _plot_2d_panel(axes[0], X_raw, raw_label,x_label,y_label)
             scores_clr, pca_clr = _plot_2d_panel(axes[1], X_clr, clr_label)
 
-            # Legend on right panel
+            display_pca_loadings(X_raw, n_components=2, top_n=10)
+             # Legend on right panel
             axes[1].legend(handles=legend_handles, title="Clusters", loc="best")
 
             # Optional: force same axis limits
@@ -269,3 +275,84 @@ class PCAPlotter:
         st.pyplot(fig)
 
         return fig, (pca_raw, pca_clr)
+
+def display_pca_loadings(df_features, n_components=2, top_n=10):
+    """
+    Fit PCA, extract feature loadings, and display top positive/negative
+    contributors per component as side-by-side Streamlit dataframes.
+
+    Parameters
+    ----------
+    df_features : pd.DataFrame
+        Feature matrix (rows = observations, columns = names/features).
+        Should not contain 'clusters' or any non-feature columns.
+    n_components : int
+        Number of PCA components to extract (default 2).
+    top_n : int
+        Number of top positive and negative loadings to display per component.
+
+    Returns
+    -------
+    loadings : pd.DataFrame
+        Full loadings matrix (features × components).
+    variance_ratios : np.ndarray
+        Explained variance ratio per component.
+    """
+    from sklearn.decomposition import PCA
+    import pandas as pd
+    import numpy as np
+    import streamlit as st
+
+    # ------------------------------------------------------------------ #
+    # 1. Fit PCA                                                           #
+    # ------------------------------------------------------------------ #
+    pca = PCA(n_components=n_components)
+    pca.fit(df_features)
+
+    component_labels = [f"PC{i+1}" for i in range(n_components)]
+    loadings = pd.DataFrame(
+        pca.components_.T,          # shape: (n_features, n_components)
+        index=df_features.columns,
+        columns=component_labels,
+    )
+
+    variance_ratios = pca.explained_variance_ratio_
+
+    # ------------------------------------------------------------------ #
+    # 2. Display top loadings per component                                #
+    # ------------------------------------------------------------------ #
+    for pc in component_labels:
+        st.subheader(f"{pc}  —  explained variance: {variance_ratios[component_labels.index(pc)]*100:.1f}%")
+        col_name = loadings[pc].index.name
+
+        top_pos = (loadings[pc]
+                   .nlargest(top_n)
+                   .reset_index()
+                   .rename(columns={ pc: "loading"}))
+
+        top_pos["rank"] = range(1, len(top_pos) + 1)
+        top_pos["loading"] = top_pos["loading"].round(4)
+
+        top_neg = (loadings[pc]
+                   .nsmallest(top_n)
+                   .reset_index()
+                   .rename(columns={pc: "loading"}))
+        top_neg["rank"] = range(1, len(top_neg) + 1)
+        top_neg["loading"] = top_neg["loading"].round(4)
+
+
+        top_combined = pd.concat(
+            [top_pos.add_suffix("_pos"), top_neg.add_suffix("_neg")],
+            axis=1
+        )[["rank_pos", col_name+"_pos", "loading_pos", col_name+"_neg", "loading_neg"]]
+
+        top_combined = top_combined.rename(columns={
+            "rank_pos": "rank",
+            col_name+"_pos": col_name+" (+)",
+            "loading_pos": "loading (+)",
+            col_name+"_neg": col_name+" (−)",
+            "loading_neg": "loading (−)",
+        })
+
+        st.dataframe(top_combined, hide_index=True, use_container_width=True)
+    return loadings, variance_ratios

@@ -22,4 +22,5 @@ class PageBabyNames(PageNames):
         return df_data
 
 
+
 PageBabyNames().run()

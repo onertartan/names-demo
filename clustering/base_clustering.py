@@ -261,7 +261,7 @@ class BaseClustering:
     @classmethod
     def silhouette_analysis(cls,df_pivot, kwargs, k_values=range(2,7)):
         # Create a subplot with 1 row and n columns
-        st.dataframe(df_pivot.head())
+        #st.dataframe(df_pivot.head())
        # st.header("df_pivot.shape:"+str(df_pivot.shape))
         fig, axs = plt.subplots(1, len(k_values))
         fig.set_size_inches(12, 4)
