@@ -13,7 +13,7 @@ class SessionAdapter:
         self.namespace = namespace
 
     def get(self, key: str, default=None):
-        return st.session_state.get(self.key, default)
+        return st.session_state.get(key, default)
 
     def set(self, key: str, value):
         st.session_state[key] = value
@@ -28,6 +28,10 @@ class PageKeys:
     def gender_list(self): return f"gender_list_{self.page_name}"
     @property
     def geo_scale(self):   return f"geo_scale_{self.page_name}"
+    @property
+    def selected_tab(self):   return f"selected_tab_{self.page_name}"
+
+
     @property
     def n_clusters(self):  return f"n_clusters_{self.page_name}"
     @property

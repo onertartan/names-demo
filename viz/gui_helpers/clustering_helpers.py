@@ -47,7 +47,7 @@ def gui_clustering_bottom():
 # OPTIONS FOR CLUSTERING ALGORITHMS
 
 def gui_clustering_main(page_name):
-    col1, col2,_ = st.columns([2, 2, 6])
+    col1, col2,_ = st.columns([1,1, 3])
     with col1:
         scaler = gui_clustering_up_col1(page_name)
     with col2:
@@ -147,7 +147,19 @@ def render_top_n_selector(max_n):
     return col1.number_input("Top-n", min_value=1, max_value=max_n,  value=30,  key="top_n_names")
 
 
-def render_data_coverage_if_rank_available(max_rank):
-        use_data_option = st.radio("**Data coverage**", ["Use all data","Use top-n names"],index=1)
+def render_name_clustering_specific_ui(df,max_rank,tab_selected):
+        col1,col2,col3=st.columns([1,2,3])
+        n_unique_years = df['year'].n_unique()
+
+        if n_unique_years != 1:
+            min_year = df['year'].min()
+            max_year = df['year'].max()
+        else:
+            st.write("Select an interval of years")
+        #   render_data_coverage_if_rank_available
+        use_data_option = col1.radio("**Data coverage**", ["Use all data","Use top-n names"],index=1)
         top_n_names = render_top_n_selector(max_rank)
+        with col2:
+            pass
+            # TODO:
         return use_data_option, top_n_names

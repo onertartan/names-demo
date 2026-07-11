@@ -13,7 +13,8 @@ def render_tab_selection(page_name,geo_level=None):
         tabs=[stx.TabBarItemData(id="tab_name_trend_analysis", title="Name Trend Analysis", description="")]
         if geo_level:
             tabs.extend([stx.TabBarItemData(id="tab_geo_clustering", title="Geographical Clustering", description=""),
-                    stx.TabBarItemData(id="tab_name_clustering", title="Name Clustering", description="")])
+                    stx.TabBarItemData(id="tab_name_clustering", title="Name Clustering", description=""),
+              stx.TabBarItemData(id="tab_time_windowed_aligned_clustering", title="Time-Window-Aligned Spatial Clustering", description="")])
         st.session_state["selected_tab_" +page_name] = stx.tab_bar(data=tabs, default="tab_name_trend_analysis")
 
     else:

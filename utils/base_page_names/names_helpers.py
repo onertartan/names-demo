@@ -85,7 +85,7 @@ def process_for_subtabs_bump_and_line_plots(df, gdf_borders, names_from_multi_se
         return df_result, df_result_not_null
     return None,None
 
-def preprocess_for_rank_bar_tabs(df: pl.DataFrame, use_rank_filtering:bool, include_all_years_option:bool, selected_names:List, top_n:int, show_column:str, secondary_top_k_filter:str, always_or_appeared_in_top_k:bool) -> pl.DataFrame:
+def preprocess_for_rank_bar_tabs(df: pl.DataFrame, use_rank_filtering:bool, include_all_years_option:bool, selected_names:List, top_n:int, show_column:str, secondary_top_k_filter:str, second_filter_option:int) -> pl.DataFrame:
     # Tabs 2.2,2.3,2.4
     # Drop geography by aggregating counts over year + name.
     df = df.group_by(["year", "name"]).agg(pl.col("count").sum()).sort(["year", "count"], descending=[False, True])
@@ -99,14 +99,17 @@ def preprocess_for_rank_bar_tabs(df: pl.DataFrame, use_rank_filtering:bool, incl
     # vectorized rank per year
     df = df.with_columns(pl.col("count").rank(method="min", descending=True).over("year").alias("rank"))
     if use_rank_filtering:
+        n_years = df.select(pl.col("year").n_unique()).item()
         if include_all_years_option :
             ever_top_n = df.filter(pl.col("rank") <= top_n)["name"].unique()
             df = df.filter(pl.col("name").is_in(ever_top_n))
 
-            if secondary_top_k_filter and secondary_top_k_filter != "No second filter":
-                threshold = int(secondary_top_k_filter.split("top-")[1])
-                n_years = df.select(pl.col("year").n_unique()).item()
+            if secondary_top_k_filter :
+                if  secondary_top_k_filter == "Max-rank":
+                    threshold= df.select(pl.col("rank").max()).item()
 
+                else:
+                    threshold = int(secondary_top_k_filter.split("top-")[1])
                 # Her ismin veri setinde toplam kaç yıl göründüğünü hesapla
                 name_stats = (
                     df.group_by("name")
@@ -115,21 +118,30 @@ def preprocess_for_rank_bar_tabs(df: pl.DataFrame, use_rank_filtering:bool, incl
                         pl.col("year").filter(pl.col("rank") <= threshold).n_unique().alias("years_in_threshold")
                     ])
                 )
-                if always_or_appeared_in_top_k:
+                ################################
+                st.dataframe(name_stats.to_pandas())
+                st.header(str(second_filter_option)+", n_years: "+str(n_years))
+                if second_filter_option==0:
                     # True: Sadece veri setindeki TÜM yıllarda (n_years) kesintisiz görünen
                     # ve her yıl belirlenen threshold içinde kalan isimler.
                     always_top_names = name_stats.filter(
                         pl.col("years_in_threshold") == n_years
                     ).select("name")
-                else:
-                    # False: Her yıl görünmeyen (total_appeared_years < n_years), yani NaN içeren
+                    df = df.filter(  (pl.col("name").is_in(always_top_names["name"]))   )
+
+                elif second_filter_option==1:
+                    # sadece Her yıl görünmeyen (total_appeared_years < n_years), yani NaN içeren
                     # ancak fiilen göründüğü tüm yıllarda threshold içinde kalan isimler.
                     always_top_names = name_stats.filter(
-                        (pl.col("years_in_threshold") == pl.col("total_appeared_years")) &
-                        (pl.col("total_appeared_years") < n_years)
+                        (pl.col("total_appeared_years") < n_years) &  (pl.col("years_in_threshold") == pl.col("total_appeared_years"))
                     ).select("name")
+                    df = df.filter(  (pl.col("name").is_in(always_top_names["name"])) )
 
-                df = df.filter(pl.col("name").is_in(always_top_names["name"]))
+            # elif second_filter_option==2:
+                #    always_top_names = name_stats.filter(
+                  #      (pl.col("total_appeared_years") < n_years)
+                   # ).select("name")
+
 
         else:
             df = df.filter(pl.col("rank") <= top_n)

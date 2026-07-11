@@ -13,6 +13,7 @@ from viz.gui_helpers.base_page_names.plot_helpers import get_title_statement
 import plotly.graph_objects as go
 
 from viz.gui_helpers.base_page_names.validate_df import validate_df
+from viz.plotters.helpers import year_ticks
 
 
 def resolve_label_overlaps(label_df: pd.DataFrame, min_gap: float =-1) -> pd.DataFrame:
@@ -57,16 +58,23 @@ class BumpPlotter(abc.ABC):
     def _build_year_ticks(years: list[int], max_ticks: int = 12) -> list[int]:
         if not years:
             return []
-        if len(years) <= max_ticks:
-            return years
 
-        step = max(1, (len(years) - 1) // (max_ticks - 1))
-        ticks = years[::step]
-        if ticks[-1] != years[-1]:
-            ticks.append(years[-1])
-        if ticks[0] != years[0]:
-            ticks.insert(0, years[0])
-        return ticks
+        start, end = years[0], years[-1]
+        span = end - start
+        if span > 80:
+            step = 5
+        elif span > 35:
+            step = 3
+        elif span > 15:
+            step = 2
+        else:
+            step = 1
+
+        first_tick = ((start + step - 1) // step) * step
+        ticks = list(range(first_tick, end + 1, step))
+        if not ticks or ticks[0] != start:
+            ticks = [start] + ticks
+        return sorted(set(ticks))
 
     @staticmethod
     def _first_seen_points(df: pd.DataFrame) -> pd.DataFrame:
@@ -81,8 +89,8 @@ class BumpPlotter(abc.ABC):
         rank_series = pd.to_numeric(df["rank"], errors="coerce")
         rank_series = rank_series.dropna()
         if rank_series.empty:
-            return None
-        return int(rank_series.max())
+            return None,None
+        return  int(rank_series.min()), int(rank_series.max())
 
     @abc.abstractmethod
     def plot(
@@ -140,7 +148,7 @@ class MatplotlibBumpPlotter(BumpPlotter):
                     label=name if j == 0 else None
                 )
 
-        max_rank = self._get_max_rank(df)
+        min_rank,max_rank = self._get_max_rank(df)
         if max_rank is None:
             col_plot.warning("No rank data available for the selected filters.")
             return
@@ -366,7 +374,7 @@ class SeabornBumpPlotter(BumpPlotter):
                 markersize=8, linewidth=2, label=name
             )
 
-        max_rank = self._get_max_rank(df)
+        min_rank, max_rank = self._get_max_rank(df)
         if max_rank is None:
             col_plot.warning("No rank data available for the selected filters.")
             return
@@ -419,15 +427,17 @@ class SeabornBumpPlotter(BumpPlotter):
         col_plot.dataframe(df)
 
 # ------------- altair implementation -------------
+
 class AltairBumpPlotter(BumpPlotter):
     ENGINE = "Altair"
 
     def plot(self, df: pd.DataFrame, col_plot: st.delta_generator.DeltaGenerator,show_column:str) -> None:
         # show_column is not used (added for compatibility with bar plotters which accept 3 parameters)
         validate_df(df)
-        max_rank = self._get_max_rank(df)
+        min_rank, max_rank = self._get_max_rank(df)
         st.dataframe(df)
         labelFontSize=10
+        labelFontSize_y_tick=10
         titleFontSize=16
         if max_rank is None:
             col_plot.warning("No rank data available for the selected filters.")
@@ -438,12 +448,22 @@ class AltairBumpPlotter(BumpPlotter):
         else:
             color_scale = alt.Scale(scheme="tableau20", domain=names)
 
+        years = [int(y) for y in df["year"].unique()]
+        first_year,last_year= years[0], years[-1]
+        tick_years = self._build_year_ticks(years)
+
+        first_year_ranks = set(df[(df["year"] == first_year)  ]["rank"].unique() ) | {max_rank}
+        last_year_ranks = set(df[(df["year"] == last_year)]["rank"].unique())
+        last_year_ranks = sorted(int(v) for v in last_year_ranks)
+        first_year_ranks = sorted(int(v) for v in first_year_ranks)
+        st.header("YEAR RANKS (bump plotter line 460)")
+        st.write(str(first_year_ranks))
         base = alt.Chart(df).encode(
-            x=alt.X("year:O", title="Year", axis=alt.Axis(labelFontSize=labelFontSize, titleFontSize=titleFontSize)),
-            y=alt.Y("rank:Q", title="Rank",
-                    scale=alt.Scale(domain=[max_rank + 0.5, 0.5]),
-                    axis=alt.Axis(    values=list(range(1, max_rank + 1)), format="d",
-             labelFontSize=labelFontSize, titleFontSize=titleFontSize)),
+            x=alt.X("year:O", title="Year",
+                    axis=alt.Axis(labelFontSize=labelFontSize, titleFontSize=titleFontSize, values=tick_years)),
+            y=alt.Y("rank:Q", scale=alt.Scale(domain=[max_rank + 0.1, 0.5]), axis=None),  # ← rank_label
+
+
             color=alt.Color("name:N", scale=color_scale, legend=alt.Legend(title="Name")),
         )
 
@@ -458,86 +478,151 @@ class AltairBumpPlotter(BumpPlotter):
             .groupby("name", as_index=False)
             .first()[["name", "year", "rank"]]
         )
+        min_gap_first_year,min_gap_last_year=20,100
 
-        first_year_labels = alt.Chart(resolve_label_overlaps(df[df["year"] == first_year],-1)).mark_text(
-            align="center", dx=-55, dy=0, fontSize=labelFontSize
+        first_year_labels = alt.Chart(resolve_label_overlaps(df[df["year"] == first_year],min_gap_first_year)).mark_text(
+            align="center", dx=-50, dy=0, fontSize=labelFontSize#df=-55
         ).encode(
             x=alt.X("year:O"),
-            y=alt.Y("rank_label:Q", scale=alt.Scale(domain=[max_rank + 0.5, 0.5])),  # ← rank_label
+            y=alt.Y("rank_label:Q", scale=alt.Scale(domain=[max_rank + 0.1, 0.5]),axis=None),  # ← rank_label
             text=alt.Text("name:N"),
-            color=alt.Color("name:N", scale=color_scale, legend=None),
+            color=alt.Color("name:N", scale=color_scale, legend=None)
         )
 
-        first_seen_df = first_seen_df[first_seen_df["year"] != first_year]
+       # karen_seen_df = first_seen_df[ (first_seen_df["year"] != first_year) & (first_seen_df["name"] == "Karen")]
+        first_seen_df = first_seen_df[ (first_seen_df["year"] != first_year)]
+
+        first_seen_year_ranks = sorted(first_seen_df["rank"].unique())
+
+        # Define the axis once as a variable to keep it DRY
+        rank_axis = alt.Axis(
+            values=first_seen_year_ranks,  # <-- Now a sorted list
+            grid=True,
+            labels=False,
+            ticks=False,
+            title=None,
+            gridColor='lightgray',
+            gridOpacity=0.5
+        )
         threshold= 3 if max_rank<10 else max_rank
         odd_rows = alt.Chart(first_seen_df[(first_seen_df["rank"] % 2 == 1) & (first_seen_df["rank"] <= threshold)]).mark_text(
-            align="right", dx=-2, dy=8, fontSize=labelFontSize
+            align="right", dx=0, dy=-8, fontSize=labelFontSize
         ).encode(
             x=alt.X("year:O"),
-            y=alt.Y("rank:Q"),
+            y=alt.Y("rank:Q", scale=alt.Scale(domain=[max_rank + 0.1, 0.5]),axis=rank_axis),
             text=alt.Text("name:N"),
             color=alt.Color("name:N", scale=color_scale, legend=None),
         )
         even_rows = alt.Chart(first_seen_df[(first_seen_df["rank"]%2==0) & (first_seen_df["rank"]<=threshold)]).mark_text(
-            align="right", dx=-2, dy=-8, fontSize=labelFontSize
+            align="right", dx=0, dy=-8, fontSize=labelFontSize
         ).encode(
             x=alt.X("year:O"),
-            y=alt.Y("rank:Q"),
+            y=alt.Y("rank:Q", scale=alt.Scale(domain=[max_rank + 0.1, 0.5]), axis=rank_axis
+                    ),
             text=alt.Text("name:N"),
             color=alt.Color("name:N", scale=color_scale, legend=None),
         )
-        first_seen_labels = odd_rows + even_rows
-
-        last_labels = alt.Chart(resolve_label_overlaps(df[df["year"] == last_year],-2) ).mark_text(
-            align="left", dx=8, fontSize=labelFontSize
+        """
+        karen_row = alt.Chart(karen_seen_df).mark_text(
+            align="right", dx=22, dy=-13, fontSize=labelFontSize
         ).encode(
             x=alt.X("year:O"),
-            y=alt.Y("rank_label:Q", scale=alt.Scale(domain=[max_rank + 0.5, 0.5])),  # ← rank_label
+            y=alt.Y("rank:Q", scale=alt.Scale(domain=[max_rank + 0.1, 0.5]), axis=rank_axis
+                    ),
             text=alt.Text("name:N"),
             color=alt.Color("name:N", scale=color_scale, legend=None),
         )
+        """
+        first_seen_labels = odd_rows + even_rows #+karen_row
 
-        chart = (lines + points + first_year_labels + first_seen_labels + last_labels).properties(
-            width=1000, height=800,
+
+        last_labels = alt.Chart(resolve_label_overlaps(df[df["year"] == last_year],min_gap_last_year) ).mark_text(
+            align="left", dx=38, fontSize=labelFontSize
+        ).encode(
+            x=alt.X("year:O"),
+            y=alt.Y("rank_label:Q", scale=alt.Scale(domain=[max_rank + 0.1, 0.5]),axis=None),  # ← rank_label
+            text=alt.Text("name:N"),
+            color=alt.Color("name:N", scale=color_scale, legend=None),
+        )
+        left_axis = alt.Chart(df).mark_line(opacity=0).encode(
+            y=alt.Y("rank:Q",
+                    scale=alt.Scale(domain=[max_rank + 0.1, 0.5], nice=False),  # Ana skalayla aynı
+                    axis=alt.Axis(
+                        orient='left',  # Ekseni sola koy
+                        values=first_year_ranks+first_seen_year_ranks,#[:4]+first_year_ranks[5:],#+first_seen_year_ranks[:5]+first_seen_year_ranks[6:],#[0:1],#+first_year_ranks[2:4]+first_year_ranks[5:],#+first_seen_year_ranks,#[0:1]+first_seen_year_ranks[-2:],#+last_year_ranks[:1]+last_year_ranks[2:3]+last_year_ranks[4:],#[0:3]+first_year_ranks[4:],  # Aynı tick değerleri
+                        format="d",
+                        labelFontSize=labelFontSize_y_tick,  # İsterseniz küçültün
+                        title="Rank",  # Başlığı boş bırakın (isteğe bağlı)
+                        labelOverlap=False,
+                        labelAlign='right',  # sol eksende etiketler sağa hizalanır (grafik dışına)
+                        labelPadding=4,
+                        grid=True,  # <-- turn gridlines on
+                        titlePadding=40
+                    )
+                    )
+        )
+
+        """
+        df = df.copy()
+        df["rank_left2"] = df["rank"]  # duplicate field
+        left_axis2 = alt.Chart(df).mark_line(opacity=0).encode(
+            y=alt.Y("rank_left2:Q",
+                    scale=alt.Scale(domain=[max_rank + 0.1, 0.5], nice=False),
+                    axis=alt.Axis(
+                        orient='left',
+                        values=first_year_ranks,#[-2:],
+                        format="d",
+                        labelFontSize=labelFontSize_y_tick,
+                        title=None,
+                        labelOverlap=False,
+                        labelAlign='right',
+                        labelPadding=10,
+                        # grid=False (or omitted)
+                    )
+                    )
+        )
+        """
+        df = df.copy()
+        df["rank_right"] = df["rank"]
+
+        right_axis = alt.Chart(df).mark_line(opacity=0).encode(
+            y=alt.Y("rank_right:Q",
+                    scale=alt.Scale(domain=[max_rank + 0.1, 0.5], nice=False),  # Ana skalayla aynı
+                    axis=alt.Axis(
+                        orient='right',  # Ekseni sağa koy
+                        values=last_year_ranks[0:1]+last_year_ranks[3:],#[:7]+last_year_ranks[8::2],#+last_year_ranks[4:],  # Aynı tick değerleri
+                        format="d",
+                        labelFontSize=labelFontSize_y_tick,  # İsterseniz küçültün
+                        title=None,  # Başlığı boş bırakın (isteğe bağlı)
+                        labelOverlap=False,
+                        labelAlign='left',  # Sağ eksende etiketler sola hizalanır (grafik dışına)
+                        labelPadding=4,
+                        grid=True,  # <-- turn gridlines on
+
+                    )
+                    )
+        )
+        chart = (lines + points + first_year_labels + first_seen_labels + last_labels + left_axis+right_axis).properties(
+            width=1050, height=500,
             title=alt.TitleParams(text=self.title, fontSize=20, anchor="middle")
-        ).configure_axisY(    labelAlign='left',     #
-            labelPadding=25,
-            titlePadding=60,
+        ).resolve_scale(
+        y='independent'   # <-- now genuinely separate scales, since fields differ
+    ).resolve_axis(
+            y='independent'  # <-- keeps left and right y-axes separate instead of merging
+        ).configure_axisX(labelFontSize=10, titleFontSize=16).configure_axisY(
+            labelAlign='left',titleFontSize=16,
+            labelPadding=15,
+            titlePadding=0,
         ).configure_legend(
-    padding=40,     )
+            padding=40,
+        )
+
 
         col_plot.altair_chart(chart, use_container_width=True)
-        st.write(str(sorted(df["name"].unique().tolist())))
-        st.write(len(df["name"].unique().tolist()))
-        #EKSİK YILLAR RAPORU
-        """
-        # Aranan isimler listesi
-        target_names = ['Aiden', 'Brandon', 'Brian', 'Ethan', 'Gary', 'Jayden', 'Jeffrey', 'Justin', 'Liam', 'Lucas',
-                        'Mateo', 'Ronald', 'Tyler']
+        st.write("Unique names(607):"+str(sorted(df["name"].unique().tolist())))
+        st.write("Number of unique names(608):"+ str(len(df["name"].unique().tolist())) )
+        chart.save("temp/eps/top_male_20.pdf")  # saves as PDF
 
-        # Yıl aralığını belirle (1880-2024)
-        all_years = set(range(1880, 2025))
-
-        results = {}
-
-        for name in target_names:
-            # İsmin bulunduğu yılları bul
-            present_years = set(df[df['name'] == name]['year'].unique())
-            # Eksik yılları bul
-            missing_years = sorted(list(all_years - present_years))
-            results[name] = missing_years
-
-        # Sonuçları yazdır
-        st.write("Eksik Yıllar Raporu:")
-        st.write("-" * 30)
-        for name, years in results.items():
-            if not years:
-                st.write(f"{name}: Hiçbir yıl eksik değil.")
-            else:
-                # Yılları gruplandırarak daha okunabilir hale getirebiliriz (isteğe bağlı)
-                # Şimdilik direkt listeyi yazdıralım
-                st.write(f"{name}: {years}")
-        """
 # ------------- factory -------------
 ENGINES: dict[str, type[BumpPlotter]] = {
     cls.ENGINE: cls

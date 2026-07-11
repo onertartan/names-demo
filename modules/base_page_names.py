@@ -16,7 +16,7 @@ from viz.gui_helpers.base_page_names.plot_helpers import create_title_for_plot
 from viz.gui_helpers.base_page.helpers import province_selector, sidebar_controls_basic_setup
 from viz.gui_helpers.base_page_names.render_tab_selection import render_tab_selection
 from viz.gui_helpers.base_page_names.tab_helpers_rank_and_trend import render_rank_and_trend_sub_tabs, get_window_size, get_n_cluster
-from viz.gui_helpers.clustering_helpers import render_data_coverage_if_rank_available
+from viz.gui_helpers.clustering_helpers import render_name_clustering_specific_ui
 from viz.gui_helpers.base_page_names.render_tabs_helpers import render_plot_map_sub_tab,  render_gender_name_surname_filters
 from viz.plotters.dendogram_plotter import plot_dendrogram
 from viz.plotters.geo_names_plotter import get_map_plotter
@@ -32,11 +32,6 @@ locale.setlocale(locale.LC_ALL, 'tr_TR.utf8')
 class PageNames(BasePage):
     geo_level = "province"
     country = "turkiye"
-    # page_name initialized in sub-classes
-    def __init__(self):
-        super().__init__()
-        self.session = SessionAdapter(self.page_name)
-        self.keys = PageKeys(self.page_name)
 
 
     def preprocessing_initial_filtering(self, name_surname_selection, selected_years, gender_list, cols, geo_column="province"):
@@ -78,11 +73,12 @@ class PageNames(BasePage):
 
     def preprocess_clustering(self, df, selected_tab):
         page_name,geo_column = self.page_name, self.geo_level
-        year = df.index.get_level_values(0).unique() # year(s)
-        df_year = df.loc[year]
+        unique_years = df.index.get_level_values(0).unique() # year(s)
+        scaler_method = st.session_state["scaler"]
 
+        df_year = df.loc[unique_years] # gerek var mı
         if self.session.get(self.keys.gender_list) == ["male", "female"]:  # if both sexes are selected
-            df_year_male, df_year_female = df[df["gender"] == "male"].loc[year], df[df["gender"] == "female"].loc[year]
+            df_year_male, df_year_female = df[df["gender"] == "male"].loc[unique_years], df[df["gender"] == "female"].loc[unique_years]
             overlapping_names = set(df_year_male["name"]) & set(df_year_female["name"])
             nonoverlapping_names =set(df_year_male["name"]) - set(df_year_female["name"])
             nonoverlapping_names2 =set(df_year_female["name"]) - set(df_year_male["name"])
@@ -93,37 +89,51 @@ class PageNames(BasePage):
                 lambda x: f"{x['name']}_male" if x['name'] in overlapping_names else x['name'], axis=1)
             df_year = pd.concat([df_year_male, df_year_female])
 
+
        # else: # Use top-30 names for clustering otherwise, pivot table becomes a very high-dimensional sparse matrix
        #     df=df.filter((pl.col("rank") <= 30))
         # Get unique cumulative total counts over years(for each province)
-        df_total_counts = df[["total_count"]].groupby(level=["year", geo_column]).first()
-        st.dataframe(df_total_counts)
-        total_counts = df_total_counts.groupby(geo_column).sum()
-        if isinstance(df_year.index, pd.MultiIndex):  # If applying temporal clustering (multiple years given as year)
-            df_year = df_year.droplevel(0)  # Drop the first level year(position 0), if so index becomes province/state
 
-        df_year = df_year.groupby([df_year.index, 'name']).agg({'count': 'sum'})
-        # Merge
-        df_year = df_year.merge(total_counts, left_index=True, right_index=True, how="outer")
-        df_year = df_year.reset_index().set_index(geo_column)
-        df_pivot = pd.pivot_table(df_year, values='count', index=df_year.index, columns=['name'], aggfunc=lambda x: x, dropna=False, fill_value=0)
-        total_counts = df_year.loc[:, "total_count"]
-        total_counts_unique=total_counts.groupby(level=0).first()
-        scaler_method = st.session_state["scaler"]
-        df_pivot = scale(scaler_method, df_pivot, total_counts_unique)
+        if selected_tab == "tab_time_windowed_aligned_clustering":
+            # List to hold each year's pivoted DataFrame
+            pivots = []
+            st.header(":::")
+            for year in unique_years:
+                df_pivot = pd.pivot_table(df_year.loc[year], values='count', index='state', columns=['name'],
+                                           aggfunc=lambda x: x, dropna=False, fill_value=0)
+                df_total_count = df.loc[year, "total_count"].groupby(level=0).first()
+                df_pivot = scale(scaler_method, df_pivot, df_total_count)
+                pivots.append(df_pivot)
+            result = pd.concat(pivots, axis=1,keys=unique_years)
 
-        if selected_tab == "tab_name_clustering":  # transpose_for_name_clustering:
-            df_pivot = df_pivot.T
+
+            st.write(result.shape)
+        else:
+            df_total_counts = df[["total_count"]].groupby(level=["year", geo_column]).first()
+            total_counts = df_total_counts.groupby(geo_column).sum()
+            if isinstance(df_year.index, pd.MultiIndex):  # If applying temporal clustering (multiple years given as year)
+                df_year = df_year.droplevel(0)  # Drop the first level year(position 0), if so index becomes province/state
+
+            df_year = df_year.groupby([df_year.index, 'name']).agg({'count': 'sum'})
+            # Merge
+            df_year = df_year.merge(total_counts, left_index=True, right_index=True, how="outer")
+            df_year = df_year.reset_index().set_index(geo_column)
+            df_pivot = pd.pivot_table(df_year, values='count', index=df_year.index, columns=['name'], aggfunc=lambda x: x, dropna=False, fill_value=0)
+            total_counts = df_year.loc[:, "total_count"]
+            total_counts_unique=total_counts.groupby(level=0).first()
+
+            df_pivot = scale(scaler_method, df_pivot, total_counts_unique)
+
+            if selected_tab == "tab_name_clustering":  # transpose_for_name_clustering:
+                df_pivot = df_pivot.T
         return df_pivot
 
     def render(self):
         page_name, geo_level= self.page_name, self.geo_level
         gdf_borders = self.gdf[geo_level]
-
         self.session.set(self.keys.geo_scale,self.geo_level)#st.session_state["geo_scale"] = "state" if "usa" in self.page_name else "province"
 
         header = "Names & Surnames Analysis" if self.page_name == "names_surnames" else "Baby Names Analysis"
-        st.header(header)
         start_year, end_year = self.data["name"].select(pl.col("year")).min().item(),  self.data["name"].select(pl.col("year")).max().item()
         sidebar_controls_basic_setup(start_year, end_year)
 
@@ -132,7 +142,7 @@ class PageNames(BasePage):
         df = self.preprocessing_initial_filtering(name_surname_selection, selected_years, gender_list, cols, geo_level)
         tab_selected = render_tab_selection(page_name,geo_level)
         if "clustering" in tab_selected:  # tabs- 1.1, 1.2, 1.3
-            self.tab_geo_and_name_clustering(df, page_name, tab_selected, geo_level) # clustering tab
+            self.tab_geo_and_name_clustering(df,  tab_selected, geo_level) # clustering tab
         elif tab_selected=="tab_name_trend_analysis":
             self.tab_name_trend(df, page_name, tab_selected, geo_level)  # clustering tab
         elif tab_selected == "tab_map":  #  tab 2.3 Map Plot
@@ -140,11 +150,11 @@ class PageNames(BasePage):
         else : # elif tab_selected in ["rank_bump", "rank_line_bar"]:  # Main Tab-2: Sub-tabs: 2-3
             self.tabs_rank_and_line_plot(df, page_name, tab_selected, geo_level)
 
-    def tab_geo_and_name_clustering(self, df, page_name, tab_selected, geo_level):
+    def tab_geo_and_name_clustering(self, df,  tab_selected, geo_level):
         # Geographical clustering & Name Clustering
         if "rank" in df.columns:
-            max_rank = df.select(pl.col("rank")).max().item()  # .item() tek bir değeri Python tipine çevirir
-            use_data_option, top_n_names = render_data_coverage_if_rank_available(30)# 30 is compatible with Türkiye, max_rank can be 5000 in USA
+            max_rank = df.select(pl.col("rank")).max().item()
+            use_data_option, top_n_names = render_name_clustering_specific_ui(df,30,tab_selected)# 30 is compatible with Türkiye, max_rank can be 5000 in USA
             if "top-n" in use_data_option:
                 df = df.filter(pl.col("rank") <= top_n_names)
 
@@ -157,6 +167,7 @@ class PageNames(BasePage):
             if df_pivot is not None:
                 plot_umap_tsne(df_pivot.copy(), CLUSTER_COLOR_MAPPING)
                 plot_mds_provinces(df_pivot)
+        # TODO: render_name_clustering_specific_ui
 
     def tab_name_trend(self, df, page_name, tab_selected, geo_level=None):
         """ Name Trend Analysis Tab: Uses the same ui with subtab2.1 rank bump"""

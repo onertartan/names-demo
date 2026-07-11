@@ -10,6 +10,8 @@ from sklearn.decomposition import PCA
 
 from clustering.models.factory import get_engine_class
 from clustering.models.hierarchical import HierarchicalBaseClusteringEngine
+from utils import SessionAdapter
+from utils.session_adapter import PageKeys
 from viz import PCAPlotter, OptimalKPlotter
 from viz.gui_helpers.base_page.helpers import sidebar_controls_basic_setup
 # Streamlit & Tools
@@ -33,6 +35,10 @@ class BasePage(ABC):
     gdf_centroids = None  # closest provinces to centroids
     geo_level=None
     country = None
+    def __init__(self):
+        super().__init__()
+        self.session = SessionAdapter(self.page_name)
+        self.keys = PageKeys(self.page_name)
 
 
     @st.cache_data
@@ -154,7 +160,7 @@ class BasePage(ABC):
         # If optimal_k_analysis is selected or use_consensus_labels is checked but it is not present(optimal_k_analysis has not previously run)
         if run_optimal_k_analysis:
             self.run_optimal_k_analysis_helper(df_pivot, engine_class, n_clusters, kwargs, save_folder,data_generator)
-        elif use_consensus:
+        elif use_consensus:##########################TODO: ADD A BUTTON TO LOAD FROM FILE
             df_pivot["clusters"] = engine_class.load_consensus_labels(kwargs, save_folder)
             st.header("Using previously saved consensus labels")
         else:
@@ -162,7 +168,7 @@ class BasePage(ABC):
             if silhouette_analysis:
                 engine_class.silhouette_analysis(df_pivot, kwargs=kwargs)
                 return
-            st.header(str(type(df_pivot))+str( df_pivot.shape))
+            st.header(str(type(df_pivot))+str( df_pivot.shape)) #########################################################can be removed(checking shape)
             labels = engine.fit_predict(df_pivot)
             # Convert to 1D if necessary
             if isinstance(labels, pd.DataFrame):
@@ -172,7 +178,8 @@ class BasePage(ABC):
 
         col_plot, col_df = st.columns([7, 3])
         # Step: Update geodata
-        if st.session_state.get("selected_tab_" + self.page_name, "") == "tab_geo_clustering" and engine:
+        #if st.session_state.get("selected_tab_" + self.page_name, "") == "tab_geo_clustering" and engine:
+        if self.session.get(self.keys.selected_tab)=="tab_geo_clustering" and engine:
             representatives = engine.get_representatives(df_pivot)
             #df_distances = engine.pairwise(df_pivot,"cosine")
         else:
