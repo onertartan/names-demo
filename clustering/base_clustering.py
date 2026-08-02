@@ -1,4 +1,5 @@
 import io
+import os
 
 import networkx as nx
 from sklearn.metrics import pairwise_distances, calinski_harabasz_score
@@ -266,7 +267,10 @@ class BaseClustering:
         ari_mean, ari_std, consensus_labels_all = \
             stability_and_consensus(labels_all, k_values, random_states, n_samples, ground_truth_labels_all)
         df_summary = cls.summarize(metrics_all, ari_mean, ari_std,  k_values)
-        if "experiment" in save_folder:
+        # data_generator is None on the Experiment page's Names Data path; the
+        # labels-tensor export only makes sense for synthetic data anyway.
+        if "experiment" in save_folder and data_generator:
+            os.makedirs(save_folder, exist_ok=True)
             np.save(f"{save_folder}/labels_tensor_{cls.__name__}_{data_generator.n_features}.npy", labels_tensor)
             labels_buffer = io.BytesIO()
             np.save(labels_buffer, labels_tensor)
@@ -278,6 +282,7 @@ class BaseClustering:
                 mime="application/octet-stream"
             )
         elif save_folder!="":
+            os.makedirs(save_folder, exist_ok=True)
             df_summary.to_csv(f"{save_folder}/{saved_file_suffix}.csv")
             pd.DataFrame(consensus_labels_all).to_csv(f"{save_folder}/consensus_labels_all_{saved_file_suffix}.csv")
 

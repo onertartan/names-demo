@@ -21,6 +21,7 @@ from viz.config import COLORS, CLUSTER_COLOR_MAPPING, VA_POSITIONS, HA_POSITIONS
 from viz.plotters.network_plotter import plot_cluster_network, plot_clustered_heatmap, plot_umap_tsne, \
     plot_mds_provinces, plot_custom_silhouette
 from viz.plotters.synthetic_data_plotter import SyntheticDataPlotter
+from viz.plotters.time_series_synthetic_plotter import TimeSeriesSyntheticPlotter
 class BasePage(ABC):
     features = None
     page_name = None
@@ -186,8 +187,11 @@ class BasePage(ABC):
                # plot_elections
                 #GeoClusterPlotter(CLUSTER_COLOR_MAPPING, HA_POSITIONS, VA_POSITIONS).plot_elections(self.gdf_clusters,n_clusters)
             col_df.dataframe(df_pivot["clusters"])
-        elif st.session_state.get("selected_tab_" + self.page_name, "") =="tab_synthetic_clustering":
-            SyntheticDataPlotter().plot_synthetic_data(df_pivot,data_generator.ground_truth_labels)
+        elif self.session.get(self.keys.selected_tab, "") == "tab_synthetic_clustering":
+            if self.session.get(self.keys.selected_sub_tab) == "time_series":
+                TimeSeriesSyntheticPlotter().plot_series_by_cluster(df_pivot)
+            else:
+                SyntheticDataPlotter().plot_synthetic_data(df_pivot, data_generator.ground_truth_labels)
         with col_plot:
             self.tab_clustering_pca(df_pivot.copy())
         return df_pivot

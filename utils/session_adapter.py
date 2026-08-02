@@ -30,6 +30,8 @@ class PageKeys:
     def geo_scale(self):   return f"geo_scale_{self.page_name}"
     @property
     def selected_tab(self):   return f"selected_tab_{self.page_name}"
+    @property
+    def selected_sub_tab(self):   return f"selected_sub_tab_{self.page_name}"
 
 
     @property
