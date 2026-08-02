@@ -11,11 +11,50 @@ from plotly.subplots import make_subplots
 import seaborn as sns
 import streamlit as st
 
+# Column name BasePage.tab_clustering appends to the clustered pivot
+CLUSTER_COLUMN = "clusters"
+
+
+def clusters_from_pivot(clustered_pivot: pd.DataFrame, cluster_column: str = CLUSTER_COLUMN) -> pd.DataFrame:
+    """Extract the name→cluster mapping from a clustered pivot (names as index)."""
+    return pd.DataFrame(
+        {"name": clustered_pivot.index.tolist(), "cluster": clustered_pivot[cluster_column].values}
+    )
+
+
+def split_clustered_pivot(
+    clustered_pivot: pd.DataFrame, cluster_column: str = CLUSTER_COLUMN
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Split a clustered pivot into the (pivot_df, clusters_df) pair the plotters use.
+
+    Expected input: names as index, years as columns, cluster labels in
+    ``cluster_column`` — the frame returned by ``BasePage.tab_clustering`` for
+    tab_name_trend_clustering. The returned pivot_df has years as index and
+    names as columns (the orientation the plot engines draw from).
+    """
+    clusters_df = clusters_from_pivot(clustered_pivot, cluster_column)
+    pivot_df = clustered_pivot.drop(columns=[cluster_column]).T
+    return pivot_df, clusters_df
+
 
 class ClusterLinePlotter(abc.ABC):
     ENGINE: str
 
-    def __init__(self, pivot_df: pd.DataFrame, clusters_df: pd.DataFrame, title: str = "Name Clusters Over Time"):
+    def __init__(
+        self,
+        pivot_df: pd.DataFrame,
+        clusters_df: pd.DataFrame | None = None,
+        title: str = "Name Clusters Over Time",
+    ):
+        if clusters_df is None:
+            if CLUSTER_COLUMN not in pivot_df.columns:
+                raise ValueError(
+                    f"clusters_df was not given and pivot_df has no '{CLUSTER_COLUMN}' column. "
+                    "Pass either (pivot_df, clusters_df) or a clustered pivot "
+                    f"(names as index, years as columns, labels in '{CLUSTER_COLUMN}')."
+                )
+            pivot_df, clusters_df = split_clustered_pivot(pivot_df)
         self.pivot_df = pivot_df
         self.clusters_df = clusters_df
         self.title = title
@@ -70,6 +109,11 @@ class ClusterLinePlotter(abc.ABC):
             return sns.color_palette("tab20", item_count).as_hex()
         return sns.color_palette("husl", item_count).as_hex()
 
+    @staticmethod
+    def _render_target(col_plot):
+        """Streamlit container to draw into; falls back to the page itself."""
+        return col_plot if col_plot is not None else st
+
     @abc.abstractmethod
     def plot(self, col_plot=None) -> None:
         raise NotImplementedError
@@ -78,6 +122,37 @@ class ClusterLinePlotter(abc.ABC):
 class MatplotlibClusterPlotter(ClusterLinePlotter):
     ENGINE = "Matplotlib"
 
+    def _draw_cluster(self, ax, cluster_id, cluster_names: list[str], colors: list[str]) -> None:
+        for name, color in zip(cluster_names, colors):
+            ax.plot(
+                self.pivot_df.index,
+                self.pivot_df[name],
+                color=color,
+                alpha=0.7,
+                linewidth=1.2,
+                label=name,
+                zorder=1,
+            )
+
+    def _decorate_axis(self, ax, cluster_id, cluster_names: list[str], year_ticks: list[int]) -> None:
+        ax.set_title(f"Cluster {cluster_id} ({len(cluster_names)} names)")
+        ax.set_ylabel("Ratio")
+        if year_ticks:
+            ax.set_xticks(year_ticks)
+            ax.set_xticklabels([str(year) for year in year_ticks], rotation=45, ha="right")
+        ax.tick_params(axis="x", labelbottom=True)
+        ax.grid(True, alpha=0.2)
+        legend_cols = self._legend_columns(len(cluster_names) + 1)
+        ax.legend(
+            loc="upper left",
+            ncol=legend_cols,
+            fontsize=7,
+            frameon=True,
+            handlelength=1.6,
+            columnspacing=0.8,
+            borderaxespad=0.3,
+        )
+
     def plot(self, col_plot=None) -> None:
         cluster_ids = self._cluster_ids()
         if not cluster_ids:
@@ -99,131 +174,49 @@ class MatplotlibClusterPlotter(ClusterLinePlotter):
 
         for ax, cluster_id in zip(axes, cluster_ids):
             cluster_names = self._cluster_names(cluster_id)
-            year_index = self.pivot_df.index
             colors = self._name_palette(len(cluster_names))
 
-            for name, color in zip(cluster_names, colors):
-                ax.plot(
-                    year_index,
-                    self.pivot_df[name],
-                    color=color,
-                    alpha=0.7,
-                    linewidth=1.2,
-                    label=name,
-                    zorder=1,
-                )
-
+            self._draw_cluster(ax, cluster_id, cluster_names, colors)
             ax.plot(
-                year_index,
+                self.pivot_df.index,
                 self.pivot_df[cluster_names].mean(axis=1),
                 color="black",
                 linewidth=3,
                 label="Cluster mean",
                 zorder=3,
             )
-
-            ax.set_title(f"Cluster {cluster_id} ({len(cluster_names)} names)")
-            ax.set_ylabel("Ratio")
-            if year_ticks:
-                ax.set_xticks(year_ticks)
-                ax.set_xticklabels([str(year) for year in year_ticks], rotation=45, ha="right")
-            ax.tick_params(axis="x", labelbottom=True)
-            ax.grid(True, alpha=0.2)
-            legend_cols = self._legend_columns(len(cluster_names) + 1)
-            ax.legend(
-                loc="upper left",
-                ncol=legend_cols,
-                fontsize=7,
-                frameon=True,
-                handlelength=1.6,
-                columnspacing=0.8,
-                borderaxespad=0.3,
-            )
+            self._decorate_axis(ax, cluster_id, cluster_names, year_ticks)
 
         for ax in axes:
             ax.set_xlabel("Year")
         fig.tight_layout(rect=[0, 0, 1, 0.98])
 
-        col_plot.pyplot(fig, use_container_width=True)
+        self._render_target(col_plot).pyplot(fig, use_container_width=True)
         plt.close(fig)
 
 
-class SeabornClusterPlotter(ClusterLinePlotter):
+class SeabornClusterPlotter(MatplotlibClusterPlotter):
     ENGINE = "Seaborn"
 
-    def plot(self, col_plot=None) -> None:
-        cluster_ids = self._cluster_ids()
-        if not cluster_ids:
-            st.info("No cluster line plot can be drawn for the current data.")
-            return
+    def _draw_cluster(self, ax, cluster_id, cluster_names: list[str], colors: list[str]) -> None:
+        cluster_frame = self._cluster_frame(cluster_id)
+        melted = cluster_frame.melt(id_vars="year", var_name="name", value_name="ratio")
+        melted = melted[melted["name"].isin(cluster_names)]
 
-        n_clusters = len(cluster_ids)
-        year_ticks = self._year_ticks()
-        fig, axes = plt.subplots(
-            n_clusters,
-            1,
-            figsize=(12, max(3, 2.8 * n_clusters)),
-            sharex=False,
+        sns.lineplot(
+            data=melted,
+            x="year",
+            y="ratio",
+            hue="name",
+            hue_order=cluster_names,
+            palette=colors,
+            units="name",
+            estimator=None,
+            ax=ax,
+            alpha=0.7,
+            linewidth=1.2,
+            legend="full",
         )
-        if n_clusters == 1:
-            axes = [axes]
-
-        fig.suptitle(self.title, fontsize=14, y=0.995)
-
-        for ax, cluster_id in zip(axes, cluster_ids):
-            cluster_frame = self._cluster_frame(cluster_id)
-            cluster_names = self._cluster_names(cluster_id)
-            colors = self._name_palette(len(cluster_names))
-            melted = cluster_frame.melt(id_vars="year", var_name="name", value_name="ratio")
-            melted = melted[melted["name"].isin(cluster_names)]
-
-            sns.lineplot(
-                data=melted,
-                x="year",
-                y="ratio",
-                hue="name",
-                hue_order=cluster_names,
-                palette=colors,
-                units="name",
-                estimator=None,
-                ax=ax,
-                alpha=0.7,
-                linewidth=1.2,
-                legend="full",
-            )
-            ax.plot(
-                cluster_frame["year"],
-                cluster_frame.drop(columns="year").mean(axis=1),
-                color="black",
-                linewidth=3,
-                label="Cluster mean",
-                zorder=3,
-            )
-            ax.set_title(f"Cluster {cluster_id} ({len(cluster_names)} names)")
-            ax.set_ylabel("Ratio")
-            if year_ticks:
-                ax.set_xticks(year_ticks)
-                ax.set_xticklabels([str(year) for year in year_ticks], rotation=45, ha="right")
-            ax.tick_params(axis="x", labelbottom=True)
-            ax.grid(True, alpha=0.2)
-            legend_cols = self._legend_columns(len(cluster_names) + 1)
-            ax.legend(
-                loc="upper left",
-                ncol=legend_cols,
-                fontsize=7,
-                frameon=True,
-                handlelength=1.6,
-                columnspacing=0.8,
-                borderaxespad=0.3,
-            )
-
-        for ax in axes:
-            ax.set_xlabel("Year")
-        fig.tight_layout(rect=[0, 0, 1, 0.98])
-
-
-        col_plot.pyplot(fig)
-        plt.close(fig)
 
 
 class PlotlyClusterPlotter(ClusterLinePlotter):
@@ -307,7 +300,7 @@ class PlotlyClusterPlotter(ClusterLinePlotter):
             ),
             margin=dict(t=80, b=180, l=50, r=50),
         )
-        col_plot.plotly_chart(fig, use_container_width=True)
+        self._render_target(col_plot).plotly_chart(fig, use_container_width=True)
 
 
 class AltairClusterPlotter(ClusterLinePlotter):
@@ -356,9 +349,10 @@ class AltairClusterPlotter(ClusterLinePlotter):
                     y=alt.Y("ratio:Q", title="Ratio"),
                 )
             )
+            title =f"Cluster {cluster_id}: " if len(cluster_ids) > 1 else ""
             cluster_charts.append(
                 alt.layer(names_chart, mean_chart)
-                .properties(title=f"Cluster {cluster_id} ({len(cluster_names)} names)")
+                .properties(title=f"{title} {len(cluster_names)} names")
             )
 
         chart = (
@@ -367,10 +361,7 @@ class AltairClusterPlotter(ClusterLinePlotter):
             .properties(title=self.title)
         )
 
-        if col_plot is not None:
-            col_plot.altair_chart(chart, use_container_width=True)
-        else:
-            st.altair_chart(chart, use_container_width=True)
+        self._render_target(col_plot).altair_chart(chart, use_container_width=True)
 
 
 def _collect_cluster_plotters() -> dict[str, type[ClusterLinePlotter]]:
@@ -390,15 +381,23 @@ ENGINES: dict[str, type[ClusterLinePlotter]] = _collect_cluster_plotters()
 def get_line_plotter_for_temporal_name_clusters(
     engine: Literal["Matplotlib", "Seaborn", "Plotly", "Altair"],
     pivot_df: pd.DataFrame,
-    clusters_df: pd.DataFrame,
+    clusters_df: pd.DataFrame | None = None,
     title: str = "Temporal Trajectories of Name Clusters",
 ) -> ClusterLinePlotter:
+    """
+    Build a cluster line plotter.
+
+    Either pass ``pivot_df`` (years × names) together with ``clusters_df``
+    (columns ``name``/``cluster``), or pass only a clustered pivot
+    (names as index, years as columns, labels in a ``clusters`` column) —
+    the frame ``BasePage.tab_clustering`` returns.
+    """
     return ENGINES[engine](pivot_df=pivot_df, clusters_df=clusters_df, title=title)
 
 
 def line_plotter_name_clusters(
     pivot_df: pd.DataFrame,
-    clusters_df: pd.DataFrame,
+    clusters_df: pd.DataFrame | None = None,
     col_plot=None,
     title: str = "Name Clusters Over Time",
 ) -> None:

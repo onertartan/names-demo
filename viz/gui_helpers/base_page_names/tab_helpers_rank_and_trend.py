@@ -58,7 +58,11 @@ def render_rank_and_trend_sub_tabs_helper_rank_filtering_panel(col_1, page_name,
 
 
 def render_rank_and_trend_sub_tabs(page_name, clusters, names, geo_level, tab_selected):
-    """ Helper function for rendering 'Rank Bump Plot' & 'Rank Bar & Line Plot' (sub-tabs 2.2 & 2.3 of 'Plots Tab')  and 'Name Trend Analysis' (1.3 of 'Clustering Tab') """
+    """ Helper function for rendering
+      - 'Rank Bump Plot'
+     - 'Rank Bar & Line Plot' (sub-tabs 2.2 & 2.3 of 'Plots Tab')
+     - 'Name Trend Plotting' (1.1  of 'Clustering & Trend Analysis Tab')
+     - Name Trend Clustering (1.2 of 'Clustering & Trend Analysis Tab') """
     col_1, col_23,col_4,col_5 =st.columns([3,3,1,1])
     col_2, col_3 = st.columns([1,2])
     if geo_level and not "trend" in tab_selected:

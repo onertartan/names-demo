@@ -1,7 +1,7 @@
 import numpy as np
-from tslearn.clustering import TimeSeriesKMeans
-from tslearn.datasets import CachedDatasets
-from tslearn.preprocessing import TimeSeriesScalerMeanVariance
+#from tslearn.clustering import TimeSeriesKMeans
+#from tslearn.datasets import CachedDatasets
+#from tslearn.preprocessing import TimeSeriesScalerMeanVariance
 import matplotlib.pyplot as plt
 import pandas as pd
 

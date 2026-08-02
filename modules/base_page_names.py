@@ -16,12 +16,12 @@ from viz.gui_helpers.base_page_names.plot_helpers import create_title_for_plot
 from viz.gui_helpers.base_page.helpers import province_selector, sidebar_controls_basic_setup
 from viz.gui_helpers.base_page_names.render_tab_selection import render_tab_selection
 from viz.gui_helpers.base_page_names.tab_helpers_rank_and_trend import render_rank_and_trend_sub_tabs, get_window_size, get_n_cluster
-from viz.gui_helpers.clustering_helpers import render_name_clustering_specific_ui
+from viz.gui_helpers.clustering_helpers import render_name_clustering_specific_ui, gui_scaler
 from viz.gui_helpers.base_page_names.render_tabs_helpers import render_plot_map_sub_tab,  render_gender_name_surname_filters
 from viz.plotters.dendogram_plotter import plot_dendrogram
 from viz.plotters.geo_names_plotter import get_map_plotter
 from viz.plotters.heatmap_plotter import plot_heatmap
-from viz.plotters.line_plotter_name_clusters import get_line_plotter_for_temporal_name_clusters
+from viz.plotters.line_plotter_name_clusters import get_line_plotter_for_temporal_name_clusters, clusters_from_pivot
 from viz.plotters.network_plotter import plot_umap_tsne, plot_mds_provinces
 import polars as pl
 import geopandas as gpd
@@ -57,12 +57,13 @@ class PageNames(BasePage):
         df = self.data[name_surname_selection.lower()]
         # 2. Get unique province(state) names
         if self.page_name != "Experiment":
-            with cols[2]:
-                selected_provinces = province_selector(
-                    df.select(pl.col(geo_column)).unique().to_series().to_list(),
-                    key_prefix=f"{self.page_name}{geo_column}")
-            # 3. Filter according to the selected provinces
-            df = df.filter( pl.col(geo_column).is_in(selected_provinces)  )
+            if geo_column:
+                with cols[2]:
+                    selected_provinces = province_selector(
+                        df.select(pl.col(geo_column)).unique().to_series().to_list(),
+                        key_prefix=f"{self.page_name}{geo_column}")
+                # 3. Filter according to the selected provinces
+                df = df.filter( pl.col(geo_column).is_in(selected_provinces)  )
         # 4. Filter according to the selected year(s)
         df = df.filter( pl.col("year").is_in(selected_years) )
         # 5. Filter according to the gender
@@ -71,11 +72,10 @@ class PageNames(BasePage):
                 df = df.filter( pl.col("gender").is_in(gender_list) )
         return df
 
-    def preprocess_clustering(self, df, selected_tab):
+    def preprocess_clustering(self, df, geo_scale,selected_tab,scaler):
         page_name,geo_column = self.page_name, self.geo_level
         unique_years = df.index.get_level_values(0).unique() # year(s)
         scaler_method = st.session_state["scaler"]
-
         df_year = df.loc[unique_years] # gerek var mı
         if self.session.get(self.keys.gender_list) == ["male", "female"]:  # if both sexes are selected
             df_year_male, df_year_female = df[df["gender"] == "male"].loc[unique_years], df[df["gender"] == "female"].loc[unique_years]
@@ -94,20 +94,22 @@ class PageNames(BasePage):
        #     df=df.filter((pl.col("rank") <= 30))
         # Get unique cumulative total counts over years(for each province)
 
-        if selected_tab == "tab_time_windowed_aligned_clustering":
+        if selected_tab == "tab_name_trend_clustering":#tab_time_windowed_aligned_clustering":
             # List to hold each year's pivoted DataFrame
             pivots = []
-            st.header(":::")
-            for year in unique_years:
-                df_pivot = pd.pivot_table(df_year.loc[year], values='count', index='state', columns=['name'],
-                                           aggfunc=lambda x: x, dropna=False, fill_value=0)
-                df_total_count = df.loc[year, "total_count"].groupby(level=0).first()
-                df_pivot = scale(scaler_method, df_pivot, df_total_count)
-                pivots.append(df_pivot)
-            result = pd.concat(pivots, axis=1,keys=unique_years)
-
-
-            st.write(result.shape)
+            if geo_scale:#time aligned geospatial clustering bölümüne taşı(tab_name_trend_clustering'a ait değil)
+                for year in unique_years:
+                    st.dataframe(df_year.loc[year])
+                    df_pivot = pd.pivot_table(df_year.loc[year], values='count', index=geo_scale, columns=['name'],
+                                               aggfunc="first", dropna=False, fill_value=0) #!!! check aggfunc ="first" works
+                    df_total_count = df.loc[year, "total_count"].groupby(level=0).first()
+                    df_pivot = scale(scaler_method, df_pivot, df_total_count)
+                    pivots.append(df_pivot)
+                result = pd.concat(pivots, axis=1,keys=unique_years)
+            else: # countrywide temporal
+                 df_pivot = pd.pivot_table(df_year, values='count', index=df_year.index, columns=['name'],
+                                          aggfunc="first", dropna=False, fill_value=0)
+                 df_pivot=df_pivot.T
         else:
             df_total_counts = df[["total_count"]].groupby(level=["year", geo_column]).first()
             total_counts = df_total_counts.groupby(geo_column).sum()
@@ -121,16 +123,14 @@ class PageNames(BasePage):
             df_pivot = pd.pivot_table(df_year, values='count', index=df_year.index, columns=['name'], aggfunc=lambda x: x, dropna=False, fill_value=0)
             total_counts = df_year.loc[:, "total_count"]
             total_counts_unique=total_counts.groupby(level=0).first()
-
             df_pivot = scale(scaler_method, df_pivot, total_counts_unique)
-
             if selected_tab == "tab_name_clustering":  # transpose_for_name_clustering:
                 df_pivot = df_pivot.T
         return df_pivot
 
     def render(self):
         page_name, geo_level= self.page_name, self.geo_level
-        gdf_borders = self.gdf[geo_level]
+        gdf_borders = self.gdf[geo_level] if geo_level else None
         self.session.set(self.keys.geo_scale,self.geo_level)#st.session_state["geo_scale"] = "state" if "usa" in self.page_name else "province"
 
         header = "Names & Surnames Analysis" if self.page_name == "names_surnames" else "Baby Names Analysis"
@@ -141,13 +141,15 @@ class PageNames(BasePage):
         name_surname_selection, selected_years, gender_list = render_gender_name_surname_filters(page_name,cols)
         df = self.preprocessing_initial_filtering(name_surname_selection, selected_years, gender_list, cols, geo_level)
         tab_selected = render_tab_selection(page_name,geo_level)
-        if "clustering" in tab_selected:  # tabs- 1.1, 1.2, 1.3
+        if  tab_selected=="tab_geo_clustering":  # tabs- 1.1, 1.2, 1.3
             self.tab_geo_and_name_clustering(df,  tab_selected, geo_level) # clustering tab
-        elif tab_selected=="tab_name_trend_analysis":
-            self.tab_name_trend(df, page_name, tab_selected, geo_level)  # clustering tab
-        elif tab_selected == "tab_map":  #  tab 2.3 Map Plot
+        elif tab_selected=="tab_name_trend_clustering":
+            self.tab_name_trend_clustering(df, page_name, tab_selected, geo_level=None)
+        elif tab_selected == "tab_name_trend_analysis":
+            self.tab_name_trend_plotting(df, page_name, tab_selected, geo_level)  # clustering tab
+        elif tab_selected == "tab_map":  # tab 2.3 Map Plot
             self.tab_plot_names_on_map(df, gdf_borders, page_name, geo_level)
-        else : # elif tab_selected in ["rank_bump", "rank_line_bar"]:  # Main Tab-2: Sub-tabs: 2-3
+        else:  # elif tab_selected in ["rank_bump", "rank_line_bar"]:  # Main Tab-2: Sub-tabs: 2-3
             self.tabs_rank_and_line_plot(df, page_name, tab_selected, geo_level)
 
     def tab_geo_and_name_clustering(self, df,  tab_selected, geo_level):
@@ -162,42 +164,40 @@ class PageNames(BasePage):
         df = df.to_pandas().set_index(['year', geo_level]).sort_index()
         gender=self.session.get(self.keys.gender)#gender=st.session_state['gender_radio_widget_' + page_name].lower()
         save_folder =  f"results/{self.country}/{tab_selected}/{gender}"
-        df_pivot = self.tab_clustering(df, geo_level, save_folder,None,tab_selected) # df, geo_scale, save_folder="", data_generator=None,
+
+        scaler= gui_scaler(self.page_name)
+        df=self.preprocess_clustering( df, geo_level, tab_selected, scaler)
+        df_pivot = self.tab_clustering(df, geo_level, save_folder,None,scaler) # df, geo_scale, save_folder="", data_generator=None,
+
         if tab_selected == "tab_geo_clustering":
             if df_pivot is not None:
                 plot_umap_tsne(df_pivot.copy(), CLUSTER_COLOR_MAPPING)
                 plot_mds_provinces(df_pivot)
-        # TODO: render_name_clustering_specific_ui
 
-    def tab_name_trend(self, df, page_name, tab_selected, geo_level=None):
-        """ Name Trend Analysis Tab: Uses the same ui with subtab2.1 rank bump"""
+    def tab_name_trend_plotting(self, df, page_name, tab_selected, geo_level=None):
+        """ Name Trend Plotting Tab: Uses the same ui with subtab2.1 rank bump"""
         clusters = []
         names = sorted(df["name"].unique(), key=locale.strxfrm)
         n_years=df["year"].n_unique()
 
         params_dict, use_province_or_cluster, show_column, \
-            selected_n_cluster, show_provinces_separately, plotter_engine, plot_style,col2 = render_rank_and_trend_sub_tabs(
+            selected_n_cluster, show_provinces_separately, plotter_engine, plot_style,col2 =  render_rank_and_trend_sub_tabs(
             page_name, clusters, names, geo_level, tab_selected)
-
-        with col2:
-            plot_trend=st.button("Plot trend", key="plot_trend_" + page_name,use_container_width=True)
-            run_hierarchical_clustering = st.button("Apply hierarchical clustering and visualize", key="run_hierarchical_clustering_" + page_name,use_container_width=True)
-            run_timeserieskmeans_clustering = st.button("Apply TimeSeriesKMeans clustering and visualize", key="run_timeserieskmeans_clustering_" + page_name,use_container_width=True)
-            window = get_window_size(n_years)
-            n_cluster = get_n_cluster()
-        col_df,_=st.columns([9,1])
-
         if n_years == 1:
-            st.warning(
-                "Note: For temporal analysis you should select a range of years and rank filtering / multiple names.")
+            st.warning("Note: For temporal analysis you should select a range of years and rank filtering / multiple names.")
             return
         if not params_dict["use_rank_filtering"] and params_dict["selected_names"] == []:
             st.warning("You have not selected any names/surnames or activate RANK FILTERING")
             return
 
-        if run_hierarchical_clustering or run_timeserieskmeans_clustering or plot_trend:
+        with col2:
+            plot_trend=st.button("Plot trend", key="plot_trend_" + page_name,use_container_width=True)
+            window = get_window_size(n_years)
+        col_df,_=st.columns([9,1])
+
+        if  plot_trend:
             df = preprocess_for_rank_bar_tabs(df, **params_dict)
-            pivot_df,pivot_df_processed, years, original_names = preprocess_for_trend(df, window)
+            pivot_df,pivot_df_processed, pivot_df_normalized,years, original_names = preprocess_for_trend(df, window)
             if plot_trend:
                 with col_df:
                      get_line_plotter_for_temporal_name_clusters(
@@ -206,38 +206,46 @@ class PageNames(BasePage):
                         clusters_df=pd.DataFrame({"cluster": 1,"name":pivot_df.columns}),
                         title="Cluster Name Trajectories",
                     ).plot()
-            if run_hierarchical_clustering:#PEARSON CORRELATION
-                ordered_names, heatmap_df, linkage_matrix, df_cluster_labels_hierarchical = trend_correlation_hierarchical(pivot_df_processed,original_names,n_cluster)
-                # Call site — clean and unambiguous
-                plot_dendrogram(linkage_matrix, n_cluster, labels=original_names)
-                plot_heatmap(heatmap_df, "name", "name", "Pearson Correlation")
-                get_line_plotter_for_temporal_name_clusters(plotter_engine,pivot_df ,df_cluster_labels_hierarchical).plot()
-            if run_timeserieskmeans_clustering:#TIMESERIESKMEANS
-                ordered_names,heatmap_df,linkage_matrix,df_cluster_labels_hierarchical,ts_features_df=trend_timeserieskmeans_hierarchical(pivot_df_processed, original_names, n_cluster, years)
-                plot_dendrogram(linkage_matrix, n_cluster, labels=original_names)
-                plot_heatmap(heatmap_df, "name", "name", "TimeSeriesKMeans Based Distance")
-                # TimeSeriesKMeans
-                st.header("TIME SERIES K-MEANS")
-                n_names = len(original_names)
-                max_k_ts = min(15, n_names - 1)
-                num_seeds_to_plot=3
-                model_kwargs = {"n_clusters": -1}
-                k_values= range(2, max_k_ts + 1)
-                random_states=range(0,100)
 
-                df_summary, metrics_all, metrics_mean, ari_mean, ari_std, consensus_labels_all = \
-                    TimeSeriesKMeansEngine.optimal_k_analysis(ts_features_df, random_states=random_states,
-                                                        k_values=k_values, model_kwargs=model_kwargs)
-                df_clusters_ts = pd.DataFrame({'name': original_names, 'cluster': consensus_labels_all[n_cluster]})
-                get_line_plotter_for_temporal_name_clusters(plotter_engine,pivot_df ,df_clusters_ts).plot()
-                st.write("Clustering Results Based on Consensus Labels")
-                st.dataframe(pd.DataFrame(index=original_names,data=consensus_labels_all))
-                OptimalKPlotter.plot_optimal_k_analysis(TimeSeriesKMeansEngine, num_seeds_to_plot, k_values, random_states,
-                                                        metrics_all, metrics_mean, ari_mean, ari_std, model_kwargs)
-                OptimalKPlotter.print_optimal_k_analysis(df_summary, using_same_data=True)
-            window_sensitivity_analysis = False
-            if window_sensitivity_analysis:
-                window_ari_analysis(df, n_cluster)
+    def tab_name_trend_clustering(self, df, page_name, tab_selected, geo_level=None):
+        """ Name Trend Plotting Tab: Uses the same ui with subtab2.1 rank bump"""
+        clusters = []
+        names = sorted(df["name"].unique(), key=locale.strxfrm)
+        n_years=df["year"].n_unique()
+
+        params_dict, use_province_or_cluster, show_column, \
+            selected_n_cluster, show_provinces_separately, plotter_engine, plot_style,col2 =  render_rank_and_trend_sub_tabs(
+            page_name, clusters, names, geo_level, tab_selected)
+
+        #with col2:
+        #    run_hierarchical_clustering = st.button("Apply hierarchical clustering and visualize", key="run_hierarchical_clustering_" + page_name,use_container_width=True)
+        #    run_timeserieskmeans_clustering = st.button("Apply TimeSeriesKMeans clustering and visualize", key="run_timeserieskmeans_clustering_" + page_name,use_container_width=True)
+        window = get_window_size(n_years)
+        #    n_cluster = get_n_cluster()
+
+        if n_years == 1:
+            st.warning("Note: For temporal analysis you should select a range of years and rank filtering / multiple names.")
+            return
+        if not params_dict["use_rank_filtering"] and params_dict["selected_names"] == []:
+            st.warning("You have not selected any names/surnames or activate RANK FILTERING")
+            return
+
+        df = preprocess_for_rank_bar_tabs(df, **params_dict)
+        pivot_df,pivot_df_processed,pivot_df_normalized, years, original_names = preprocess_for_trend(df, window)
+
+        # Cluster name trajectories: samples = names (rows), features = years (columns);
+        # tab_clustering appends the labels as a "clusters" column on the frame it returns.
+        df_clustered = self.tab_clustering(pivot_df_normalized.T, geo_level, "", None, "Z-norm")
+        if df_clustered is None:  # no clustering algorithm selected yet
+            return
+        col_df,_=st.columns([9,1])
+        get_line_plotter_for_temporal_name_clusters(
+            plotter_engine,
+            pivot_df=pivot_df,  # raw ratio trajectories (years × names)
+            clusters_df=clusters_from_pivot(df_clustered),
+            title="Temporal Trajectories of Name Clusters",
+        ).plot(col_plot=col_df)
+
 
     def tab_plot_names_on_map(self, df:pl.DataFrame, gdf_borders:gpd.GeoDataFrame, page_name:str, geo_level:str):
         # Tab 2.3 Map Plot (2.1.1.Select Baby Names if they are in top-n , 2.1.2. Nth Most Common)

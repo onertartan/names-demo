@@ -1,9 +1,7 @@
 import streamlit as st
 import pandas as pd
 import polars as pl
-
-
-def gui_clustering_up_col1(page_name):
+def gui_scaler(page_name):
     # First column of upper part in clustering showing scaling options
     if "names" in page_name:
         options = ["Share of Top-n (L1 Norm)",  # Denominator = Sum of the 30 columns
@@ -15,7 +13,7 @@ def gui_clustering_up_col1(page_name):
     scaler = st.radio("Select scaling option", options=options, key="scaler")
     return scaler
 
-def gui_clustering_up_col2():
+def gui_clustering_up():
     # scaler
     run_optimal_k_analysis = st.checkbox("Run cluster analysis", key="optimal_k_analysis")
     n_seeds = st.number_input("Number of seeds", min_value=3, max_value=100, value=3, key="number_of_seeds")
@@ -36,10 +34,10 @@ def gui_clustering_bottom():
 
     for col, (key, config) in zip(cols, algos.items()):
         with col:
-           # with st.form("submit_form_" + key):
-               # submitted = st.form_submit_button(config["label"], use_container_width=True)
-            clicked = st.button(config["label"], use_container_width=True,key=key)
             kwargs = config["gui_func"]()
+            # form_submit_button (not st.button): inside a form, only a submit click
+            # triggers a rerun, so editing options above doesn't refresh the page.
+            clicked = st.form_submit_button(config["label"], use_container_width=True)
             if clicked:
                 selected_algo, kwargs_for_selected_algo = key, kwargs
     return selected_algo, kwargs_for_selected_algo
@@ -47,14 +45,14 @@ def gui_clustering_bottom():
 # OPTIONS FOR CLUSTERING ALGORITHMS
 
 def gui_clustering_main(page_name):
-    col1, col2,_ = st.columns([1,1, 3])
-    with col1:
-        scaler = gui_clustering_up_col1(page_name)
-    with col2:
-        run_optimal_k_analysis, n_seeds, use_consensus = gui_clustering_up_col2()
-
-    selected_algo, kwargs = gui_clustering_bottom()
-    return scaler, run_optimal_k_analysis, n_seeds, use_consensus, selected_algo, kwargs
+    # Everything below lives in one form: changing the checkboxes/number input/
+    # per-algorithm options does NOT rerun the page. Only clicking an algorithm's
+    # form_submit_button submits the form (one rerun) with all current values,
+    # which is when clustering should actually run (selected_algo is not None).
+    with st.form(key=f"clustering_form_{page_name}", border=False):
+        run_optimal_k_analysis, n_seeds, use_consensus = gui_clustering_up()
+        selected_algo, kwargs = gui_clustering_bottom()
+    return  run_optimal_k_analysis, n_seeds, use_consensus, selected_algo, kwargs
 
 def gui_options_gmm():
     n_clusters = st.number_input("Number of clusters / components", 2, 15, 4, key="n_cluster_gmm")

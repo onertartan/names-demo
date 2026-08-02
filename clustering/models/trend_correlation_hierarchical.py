@@ -4,7 +4,7 @@ import numpy as np
 from scipy.cluster.hierarchy import dendrogram, linkage, leaves_list
 from scipy.cluster.hierarchy import fcluster
 from scipy.spatial.distance import squareform, pdist
-from tslearn.preprocessing import TimeSeriesScalerMeanVariance
+#from tslearn.preprocessing import TimeSeriesScalerMeanVariance
 
 
 def trend_correlation_hierarchical(pivot_df_processed:pd.DataFrame,original_names:list,n_cluster:int):

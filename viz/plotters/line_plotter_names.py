@@ -100,24 +100,6 @@ class PlotlyLinePlotter(LinePlotter):
         )
         col_plot.plotly_chart(fig, use_container_width=True)
 
-class PlotlyLinePlotter(LinePlotter):
-    ENGINE = "Plotly"
-
-    def plot(self, df, col_plot, show_column):
-        df = self._prepare_df(df)
-
-        fig = px.line(
-            df,
-            x="year",
-            y=show_column,
-            color="name",
-            markers=True,
-            title=self.title)
-
-        fig.update_layout(legend=dict(orientation="v"), hovermode="x unified")
-        col_plot.plotly_chart(fig, use_container_width=True)
-
-
 
 class AltairLinePlotter(LinePlotter):
     ENGINE = "Altair"

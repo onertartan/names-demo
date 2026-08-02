@@ -24,21 +24,21 @@ class Experiment(PageNames):
 
         tabs_main = [stx.TabBarItemData(id="tab_synthetic_clustering", title="Synthetic Data", description=""),
                      stx.TabBarItemData(id="tab_geo_clustering", title="Names Data", description="")]
-        tab_main_selected = stx.tab_bar(data=tabs_main, default="tab_geo_clustering")
-        st.session_state["selected_tab_" + page_name] = tab_main_selected
+        tab_selected = stx.tab_bar(data=tabs_main, default="tab_geo_clustering")
 
-        if tab_main_selected == "tab_synthetic_clustering":
-            tabs = [stx.TabBarItemData(id="tab_map", title="Map Plot", description=""),
-                    stx.TabBarItemData(id="rank_bump", title="Rank Bump Plot", description=""),
-                    stx.TabBarItemData(id="rank_bar_line_bar", title="Rank Bar & Line Plot", description=""),
-                    stx.TabBarItemData(id="custom_bar_line_bar", title="Custom Name Bar & Line Plot", description="")]
-           # st.session_state["selected_tab_" + page_name] = stx.tab_bar(data=tabs, default="tab_map")
-        return tab_main_selected
+        if tab_selected == "tab_synthetic_clustering":
+            tabs = [stx.TabBarItemData(id="blobs", title="Blobs Data", description=""),
+                    stx.TabBarItemData(id="time_series", title="Time Series Data", description="")]
+            tab_selected = stx.tab_bar(data=tabs, default="blobs")
+        st.session_state["selected_tab_" + page_name] = tab_selected
+
+        # st.session_state["selected_tab_" + page_name] = stx.tab_bar(data=tabs, default="tab_map")
+        return tab_selected
 
     def preprocess_clustering(self, df, tab_main_selected):
         # data_generator parameter is for compatibility, it is passed as *args to tab_clustering
         if tab_main_selected == "tab_geo_clustering":
-            return super().preprocess_clustering(df, tab_main_selected)
+            return super().preprocess_clustering(df,"", tab_main_selected)
         else:
             return df
     def render(self):
@@ -59,6 +59,6 @@ class Experiment(PageNames):
             synthetic_kwargs = render_synthetic_data()
             data_generator = BlobsSyntheticDataGenerator(synthetic_kwargs)
             df,ground_truth_labels= data_generator.generate()
-        df_pivot = self.tab_clustering(df, geo_level, "results/experiment", data_generator,tab_main_selected)
+        df_pivot = self.tab_clustering(df, geo_level, "results/experiment", data_generator,"No scaling")
 
 Experiment().run()

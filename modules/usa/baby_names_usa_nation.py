@@ -16,7 +16,7 @@ class PageBabyNamesNation(PageNames):
         df_data = {"name":df }
         return df_data
 
-    def render(self):
+    def render2(self):
         page_name = self.page_name
         header ="Nationwide Baby Names Analysis"
         st.header(header)
@@ -36,7 +36,7 @@ class PageBabyNamesNation(PageNames):
 
         tab_selected = render_tab_selection(page_name)
         if  tab_selected=="tab_name_trend_analysis":
-            self.tab_name_trend(df, page_name, tab_selected)
+            self.tab_name_trend_plotting(df, page_name, tab_selected)
         else:
             # since the page relies on nation-level data instead of state-level, there is not map plotting (only line, rank bump etc.)
             self.tabs_rank_and_line_plot(df, page_name, tab_selected)

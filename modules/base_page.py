@@ -21,8 +21,6 @@ from viz.config import COLORS, CLUSTER_COLOR_MAPPING, VA_POSITIONS, HA_POSITIONS
 from viz.plotters.network_plotter import plot_cluster_network, plot_clustered_heatmap, plot_umap_tsne, \
     plot_mds_provinces, plot_custom_silhouette
 from viz.plotters.synthetic_data_plotter import SyntheticDataPlotter
-
-
 class BasePage(ABC):
     features = None
     page_name = None
@@ -123,21 +121,16 @@ class BasePage(ABC):
             #cls.checkb ox_group[feature_name].checked_dict[nom_denom_key_suffix][key] = val
        #1 print("$$$",nom_denom_key_suffix,"$$$",cls.checkbox_group[feature_name].checked_dict[nom_denom_key_suffix])
 
-    @abstractmethod
-    def preprocess_clustering(self, df, *args):
-        pass    # Overriden by sub-classes Base_Page_Names & Base_Page_Common
 
-    def run_optimal_k_analysis_helper(self, df_pivot, engine_class, n_clusters, kwargs, save_folder,data_generator):
+    def run_optimal_k_analysis_helper(self, df_pivot, engine_class, n_clusters, kwargs, save_folder,data_generator,scaler):
         k_values = list(range(2, 11)) if engine_class is not HierarchicalBaseClusteringEngine else range(n_clusters, n_clusters + 1)
 
         random_states = range(st.session_state["number_of_seeds"]) if engine_class.__name__ != "HierarchicalClusteringEngine" else range(1)
 
         num_seeds_to_plot = 3 if engine_class.__name__ != "HierarchicalClusteringEngine" else 1
-        scaler,year1 , year2 = st.session_state["scaler"], st.session_state["year_1"], st.session_state["year_2"]
+        year1 , year2 = st.session_state["year_1"], st.session_state["year_2"]
         saved_file_suffix = f"{scaler}_{year1}_{year2}"
         # CROSS-METHOD OPTIMAL K ANALYSIS
-
-
         df_summary, metrics_all, metrics_mean, ari_mean, ari_std, consensus_labels_all = \
             engine_class.optimal_k_analysis( df_pivot, random_states, k_values, kwargs, save_folder, saved_file_suffix,data_generator)
         df_pivot["clusters"] = consensus_labels_all[n_clusters]
@@ -145,21 +138,19 @@ class BasePage(ABC):
         OptimalKPlotter.plot_optimal_k_analysis(engine_class, num_seeds_to_plot, k_values, random_states, metrics_all, metrics_mean, ari_mean, ari_std, kwargs)
         OptimalKPlotter.print_optimal_k_analysis(df_summary,using_same_data=False)
 
-    def tab_clustering(self, df, geo_scale, save_folder="", data_generator=None,*args):
-        scaler, run_optimal_k_analysis, n_seeds, use_consensus, clustering_algorithm, kwargs= gui_clustering_main(self.page_name)
-
+    def tab_clustering(self, df_pivot, geo_scale, save_folder="", data_generator=None,scaler=""):
+        run_optimal_k_analysis, n_seeds, use_consensus, clustering_algorithm, kwargs= gui_clustering_main(self.page_name)
         if not clustering_algorithm:
             return
         engine_class = get_engine_class(clustering_algorithm)
         n_clusters = st.session_state["n_clusters"] = kwargs["n_clusters"]
-        df_pivot = self.preprocess_clustering(df, *args)
         engine =  engine_class(**kwargs)  # Single engine object will be initialized later if not optimal_k_analysis or use_consensus_labels
         if save_folder != "":
             save_folder = f"{save_folder}/{engine_class.__name__}"
         # 1. Run clustering: Preprocess
         # If optimal_k_analysis is selected or use_consensus_labels is checked but it is not present(optimal_k_analysis has not previously run)
         if run_optimal_k_analysis:
-            self.run_optimal_k_analysis_helper(df_pivot, engine_class, n_clusters, kwargs, save_folder,data_generator)
+            self.run_optimal_k_analysis_helper(df_pivot, engine_class, n_clusters, kwargs, save_folder,data_generator,scaler)
         elif use_consensus:##########################TODO: ADD A BUTTON TO LOAD FROM FILE
             df_pivot["clusters"] = engine_class.load_consensus_labels(kwargs, save_folder)
             st.header("Using previously saved consensus labels")
@@ -168,7 +159,6 @@ class BasePage(ABC):
             if silhouette_analysis:
                 engine_class.silhouette_analysis(df_pivot, kwargs=kwargs)
                 return
-            st.header(str(type(df_pivot))+str( df_pivot.shape)) #########################################################can be removed(checking shape)
             labels = engine.fit_predict(df_pivot)
             # Convert to 1D if necessary
             if isinstance(labels, pd.DataFrame):
@@ -179,26 +169,20 @@ class BasePage(ABC):
         col_plot, col_df = st.columns([7, 3])
         # Step: Update geodata
         #if st.session_state.get("selected_tab_" + self.page_name, "") == "tab_geo_clustering" and engine:
+        representatives = None
         if self.session.get(self.keys.selected_tab)=="tab_geo_clustering" and engine:
             representatives = engine.get_representatives(df_pivot)
+            self.gdf_clusters, self.gdf_centroids = engine_class.update_geo_cluster_centers(self.gdf, geo_scale, df_pivot, representatives)
             #df_distances = engine.pairwise(df_pivot,"cosine")
-        else:
-            representatives = None
-        self.gdf_clusters, self.gdf_centroids = engine_class.update_geo_cluster_centers(self.gdf, geo_scale, df_pivot, representatives)
-
-        if st.session_state.get("selected_tab_" + self.page_name, "") == "tab_geo_clustering":
             # Determine year or year range
-            start_year = df.index.get_level_values(0).min()
-            end_year = df.index.get_level_values(0).max()
+            start_year = df_pivot.index.get_level_values(0).min()
+            end_year = df_pivot.index.get_level_values(0).max()
             if start_year == end_year:
                 year_label = f"in {start_year}"
             else:
                 year_label = f"between {start_year}-{end_year}"
             with col_plot:
-                GeoClusterPlotter(CLUSTER_COLOR_MAPPING, HA_POSITIONS, VA_POSITIONS).plot_cluster_map(self.gdf_clusters,
-                                                                                                      self.gdf_centroids,
-                                                                                                      n_clusters,                                                                                                   year_label,
-                                                                                                      self.geo_level)
+                GeoClusterPlotter(CLUSTER_COLOR_MAPPING, HA_POSITIONS, VA_POSITIONS).plot_cluster_map(self.gdf_clusters, self.gdf_centroids, n_clusters, year_label, geo_scale)
                # plot_elections
                 #GeoClusterPlotter(CLUSTER_COLOR_MAPPING, HA_POSITIONS, VA_POSITIONS).plot_elections(self.gdf_clusters,n_clusters)
             col_df.dataframe(df_pivot["clusters"])
@@ -219,4 +203,3 @@ class BasePage(ABC):
         mid_threshold = total_points / (20 * factor) if st.session_state.get("selected_tab_" + self.page_name,"no_tab") != "tab_map" else 100  #
         title= f"PCA of provincial name-distribution profiles (2018–2024)" if self.page_name in ["names_surnames","baby_names"] else f"PCA of feature profiles"
         PCAPlotter().plot_pca(df_features, df_clusters,dense_threshold, mid_threshold, COLORS,title)
-

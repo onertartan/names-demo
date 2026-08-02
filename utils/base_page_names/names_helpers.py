@@ -4,7 +4,7 @@ import polars as pl
 import geopandas as gpd
 import streamlit as st
 from sklearn.metrics import adjusted_rand_score
-from tslearn.preprocessing import TimeSeriesScalerMeanVariance
+#from tslearn.preprocessing import TimeSeriesScalerMeanVariance
 from clustering.models.time_series_k_means import TimeSeriesKMeansEngine
 from clustering.models.trend_correlation_hierarchical import trend_correlation_hierarchical
 from viz.plotters.bar_plotter_names import get_bar_plotter
@@ -159,7 +159,7 @@ def preprocess_for_trend(df:pd.DataFrame,window):
     # Original names order — for dendrogram labels and fcluster alignment
     original_names = pivot_df.columns.tolist()
     years = pivot_df.index.tolist()
-    st.header("SHAPE OF pivot_df:" + str(pivot_df.shape))
+    st.header("SHAPE OF pivot_df:(names helpers 162)" + str(pivot_df.shape))
     if window > 1:
         half_window = window // 2  # 11 için bu değer 5 olacaktır.
         # Hareketli ortalama uygulama ve boş değerleri temizleme
@@ -168,7 +168,9 @@ def preprocess_for_trend(df:pd.DataFrame,window):
         years = years[half_window:-half_window]
     else:
         pivot_df_processed = pivot_df
-    return pivot_df,pivot_df_processed,years, original_names
+    pivot_df_normalized = (pivot_df_processed - pivot_df_processed.mean()) / pivot_df_processed.std()
+
+    return pivot_df,pivot_df_processed,pivot_df_normalized,years, original_names
 
 def window_ari_analysis(df, n_cluster):
     k_values = [n_cluster]  # fixed k across all windows
@@ -178,7 +180,7 @@ def window_ari_analysis(df, n_cluster):
     tsk_labels_per_window = {}
 
     for window in window_range:
-        pivot_df, pivot_df_processed, years, original_names = preprocess_for_trend(df, window)
+        pivot_df, pivot_df_processed,pivot_df_normalized, years, original_names = preprocess_for_trend(df, window)
 
         # HC labels
         _, _, _, df_hc_labels = trend_correlation_hierarchical(

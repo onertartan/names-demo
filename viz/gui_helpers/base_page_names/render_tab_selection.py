@@ -10,11 +10,13 @@ def render_tab_selection(page_name,geo_level=None):
     tab_main_selected = stx.tab_bar(data=tabs_main, default="tab_main_algorithmic")
 
     if tab_main_selected == "tab_main_algorithmic":
-        tabs=[stx.TabBarItemData(id="tab_name_trend_analysis", title="Name Trend Analysis", description="")]
+        tabs=[stx.TabBarItemData(id="tab_name_trend_analysis", title="Name Trend Plotting", description=""),
+              stx.TabBarItemData(id="tab_name_trend_clustering", title="Name Trend Clustering", description="")]
         if geo_level:
             tabs.extend([stx.TabBarItemData(id="tab_geo_clustering", title="Geographical Clustering", description=""),
-                    stx.TabBarItemData(id="tab_name_clustering", title="Name Clustering", description=""),
-              stx.TabBarItemData(id="tab_time_windowed_aligned_clustering", title="Time-Window-Aligned Spatial Clustering", description="")])
+                    stx.TabBarItemData(id="tab_name_clustering", title="Name Clustering", description="")])
+
+            # stx.TabBarItemData(id="tab_time_windowed_aligned_clustering", title="Time-Window-Aligned Spatial Clustering", description="")])
         st.session_state["selected_tab_" +page_name] = stx.tab_bar(data=tabs, default="tab_name_trend_analysis")
 
     else:
