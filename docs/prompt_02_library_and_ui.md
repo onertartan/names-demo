@@ -175,9 +175,25 @@ reimplement the signed-rho logic.
 computed numerically, **not hard-coded**. Returns `None` when no gap within the window
 achieves it.
 
+Two conventions the gap scan depends on, both normative:
+
+- **Placement is centred.** For a candidate gap `g`, place the pair at
+  `y1 = 1901 + (99 - g)//2` and `y2 = y1 + g`. Anchoring at a fixed year instead
+  changes the answer for edge-sensitive shapes, because clipping at the window
+  boundary alters the correlation. Centred placement also matches how quick-add
+  spreads instances across the window.
+- **Ascending scan, not bisection.** `rho(g)` is not monotone for the periodic
+  shapes, so bisection can land on the wrong side. Scan `g` upward and return the
+  first value with `rho < 0.4` (strict).
+
+State both in the module docstring; neither is visible from the signature.
+
 ### Reference values
 
-Signed rho on the 1901–2000 grid after z-normalization:
+Signed rho after z-normalization. **Evaluate on `np.linspace(0, 1, 100)`**, not on
+`(YEARS - 1901)/99` — the two differ by one ulp at a boundary grid point, which is
+enough to move `cylinder` from −0.200 to −0.180. Route every conversion through
+`year_to_t` so no caller rebuilds the grid a second way.
 
 | Pair | rho |
 |---|---|
@@ -201,8 +217,8 @@ Signed rho on the 1901–2000 grid after z-normalization:
 | `peak` | 15 | 11 |
 | `peak` | 30 | 17 |
 | `impulse` | 6 | 4 |
-| `cylinder` | 50 | 15 |
-| `sigmoid` | 20 | 53 |
+| `cylinder` | 50 | 16 |
+| `sigmoid` | 20 | 55 |
 | `level_shift` | — | 43 |
 
 The last two rows are the reason `flag_pairs` exists. Translation barely separates a
@@ -330,8 +346,8 @@ on the same path.
 Add `tests/test_shape_library.py`:
 
 - `year_to_t` / `t_to_year` round-trip for 1901, 1950, 2000, and `year_to_t(2000) == 1.0`
-- every reference rho and every `suggested_min_gap` value in §2 reproduces within
-  `atol=0.01` (gaps exactly)
+- every reference rho in §2 reproduces within `atol=0.01`, and every
+  `suggested_min_gap` value reproduces exactly
 - validation raises on out-of-range years, duplicate keys, a position given for a
   `NONE` shape, and a position omitted for a positionable one
 - clipping: `peak@1905w15` is truncated, not wrapped — assert the final years sit
