@@ -7,6 +7,7 @@ import polars as pl
 from viz.gui_helpers.base_page_names.render_tabs_helpers import render_gender_name_surname_filters, \
     render_synthetic_data
 from viz.gui_helpers.base_page.helpers import sidebar_controls_basic_setup
+from viz.gui_helpers.clustering_helpers import gui_scaler
 import extra_streamlit_components as stx
 
 
@@ -38,12 +39,10 @@ class Experiment(PageNames):
         self.session.set(self.keys.selected_sub_tab, sub_tab_selected)
         return tab_main_selected, sub_tab_selected
 
-    def preprocess_clustering(self, df, tab_main_selected):
-        # data_generator parameter is for compatibility, it is passed as *args to tab_clustering
-        if tab_main_selected == "tab_geo_clustering":
-            return super().preprocess_clustering(df,"", tab_main_selected)
-        else:
-            return df
+    def preprocess_clustering(self, df, geo_scale, selected_tab, scaler):
+        if selected_tab == "tab_geo_clustering":
+            return super().preprocess_clustering(df, geo_scale, selected_tab, scaler)
+        return df  # synthetic frames are already feature matrices
     @staticmethod
     def time_series_synthetic_kwargs():
         # Step-1 vertical slice: fixed three-class list. The class-builder UI
@@ -68,10 +67,13 @@ class Experiment(PageNames):
         sidebar_controls_basic_setup(start_year, end_year)
         cols = st.columns([1, 1, 3, 2])
         tab_main_selected, sub_tab_selected = self.render_tabs()
+        scaler = "No scaling"
         if tab_main_selected == "tab_geo_clustering":
             name_surname_selection, selected_years, gender_list = render_gender_name_surname_filters(page_name,cols)
             df = self.preprocessing_initial_filtering(name_surname_selection, selected_years, gender_list, cols, geo_level)
             df = df.to_pandas().set_index(['year', geo_level]).sort_index()
+            scaler = gui_scaler(page_name)
+            df = self.preprocess_clustering(df, geo_level, tab_main_selected, scaler)
             data_generator = None
         elif sub_tab_selected == "time_series":
             data_generator = TimeSeriesSyntheticDataGenerator(self.time_series_synthetic_kwargs())
@@ -80,6 +82,6 @@ class Experiment(PageNames):
             synthetic_kwargs = render_synthetic_data()
             data_generator = BlobsSyntheticDataGenerator(synthetic_kwargs)
             df,ground_truth_labels= data_generator.generate()
-        df_pivot = self.tab_clustering(df, geo_level, "results/experiment", data_generator,"No scaling")
+        df_pivot = self.tab_clustering(df, geo_level, "results/experiment", data_generator,scaler)
 
 Experiment().run()
