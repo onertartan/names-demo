@@ -129,9 +129,7 @@ def plot_mds_provinces(df_pivot,
         columns=['MDS1', 'MDS2'] if n_components==2 else ["MDS1","MDS2","MDS3"]
     )
 
-    # Print stress value
     stress = mds.stress_
-    print(f"✓ MDS completed with stress: {stress:.4f}")
 
     df_labels = df_pivot["clusters"]
     cluster_color_map = create_cluster_color_mapping(df_pivot, CLUSTER_COLOR_MAPPING)
