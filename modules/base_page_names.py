@@ -84,9 +84,9 @@ class PageNames(BasePage):
             nonoverlapping_names2 =set(df_year_female["name"]) - set(df_year_male["name"])
             #st.header("Size overlapping:"+str(len(overlapping_names))+", Size nonoverlapping:"+str(len(nonoverlapping_names))+", Size nonoverlapping2:"+str(len(nonoverlapping_names2)))
             df_year_male['name'] = df_year_male.apply(
-                lambda x: f"{x['name']}_female" if x['name'] in overlapping_names else x['name'], axis=1)
-            df_year_female['name'] = df_year_female.apply(
                 lambda x: f"{x['name']}_male" if x['name'] in overlapping_names else x['name'], axis=1)
+            df_year_female['name'] = df_year_female.apply(
+                lambda x: f"{x['name']}_female" if x['name'] in overlapping_names else x['name'], axis=1)
             df_year = pd.concat([df_year_male, df_year_female])
 
 

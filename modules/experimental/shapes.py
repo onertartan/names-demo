@@ -95,10 +95,14 @@ class GenConfig:
     amp_range: tuple[float, float] = (0.5, 2.0)
 
 
-def make_dataset(
-    names: list[str], cfg: GenConfig, rng: np.random.Generator
+def make_dataset_from_prototypes(
+    protos: np.ndarray, cfg: GenConfig, rng: np.random.Generator
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Draw a labeled synthetic time-series dataset from shape prototypes.
+    """Draw a labeled synthetic time-series dataset from prototype rows.
+
+    ``protos`` has shape (k, T); the time grid is taken from
+    ``protos.shape[1]``, not from ``cfg.T``, which only tells ``make_dataset``
+    how to evaluate named prototypes.
 
     Per sample: X = a * prototype + sigma * gauss, then, if cfg.znorm, X is
     z-normalized. The order -- amplitude, then noise, then normalization --
@@ -114,10 +118,10 @@ def make_dataset(
     With amplitude_jitter=False (default), a=1 for every sample and clusters
     come out spherical. With True, a ~ Uniform(*cfg.amp_range) per sample.
     """
-    protos = prototypes(names, cfg.T)
-    k, n = len(names), cfg.n_per_cluster
+    k, T = protos.shape
+    n = cfg.n_per_cluster
 
-    X = np.empty((k * n, cfg.T))
+    X = np.empty((k * n, T))
     y = np.empty(k * n, dtype=int)
     for i in range(k):
         sl = slice(i * n, (i + 1) * n)
@@ -125,13 +129,25 @@ def make_dataset(
             a = rng.uniform(cfg.amp_range[0], cfg.amp_range[1], size=(n, 1))
         else:
             a = 1.0
-        gauss = rng.standard_normal((n, cfg.T))
+        gauss = rng.standard_normal((n, T))
         X[sl] = a * protos[i] + cfg.sigma * gauss
         y[sl] = i
 
     if cfg.znorm:
         X = zscore(X, axis=-1)
     return X, y
+
+
+def make_dataset(
+    names: list[str], cfg: GenConfig, rng: np.random.Generator
+) -> tuple[np.ndarray, np.ndarray]:
+    """Draw a labeled synthetic time-series dataset from named base shapes.
+
+    Evaluates ``prototypes(names, cfg.T)`` and delegates to
+    ``make_dataset_from_prototypes``, which owns the sampling model and the
+    amplitude -> noise -> z-normalization order.
+    """
+    return make_dataset_from_prototypes(prototypes(names, cfg.T), cfg, rng)
 
 
 @dataclass
@@ -144,10 +160,13 @@ class Difficulty:
     verdict: str  # "kolay" / "orta" / "zor"
 
 
-def difficulty(
-    names: list[str], T: int = 128, sigma: float = 0.3, amp_min: float = 1.0
+def difficulty_from_prototypes(
+    protos: np.ndarray, labels: list[str], sigma: float = 0.3, amp_min: float = 1.0
 ) -> Difficulty:
-    """Diagnose how hard a shape pool is to cluster correctly.
+    """Diagnose how hard a set of prototype rows is to cluster correctly.
+
+    ``protos`` has shape (k, T) with z-normalized rows; ``labels`` names each
+    row for the ``closest_pair`` report.
 
     Finds the closest pair of prototypes in z-normalized space by the
     *signed* max correlation, not abs(rho). For z-normalized phi_i, phi_j:
@@ -165,7 +184,7 @@ def difficulty(
     theta_spread: >=3 the noise cones are well clear of each other ("kolay"),
     >=1.5 some overlap ("orta"), otherwise they likely overlap ("zor").
     """
-    protos = prototypes(names, T)
+    T = protos.shape[1]
     corr = (protos @ protos.T) / T
     np.fill_diagonal(corr, -np.inf)
     i, j = np.unravel_index(np.argmax(corr), corr.shape)
@@ -187,6 +206,18 @@ def difficulty(
         theta_min_deg=theta_min_deg,
         theta_spread_deg=theta_spread_deg,
         ratio=ratio,
-        closest_pair=(names[i], names[j]),
+        closest_pair=(labels[i], labels[j]),
         verdict=verdict,
     )
+
+
+def difficulty(
+    names: list[str], T: int = 128, sigma: float = 0.3, amp_min: float = 1.0
+) -> Difficulty:
+    """Diagnose how hard a pool of named base shapes is to cluster correctly.
+
+    Evaluates ``prototypes(names, T)`` and delegates to
+    ``difficulty_from_prototypes``, which owns the signed-rho closest-pair
+    logic.
+    """
+    return difficulty_from_prototypes(prototypes(names, T), names, sigma, amp_min)
