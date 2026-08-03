@@ -1,11 +1,10 @@
 from modules.base_page_names import PageNames
-from modules.experimental.shape_library import ShapeInstance
 from modules.experimental.synthetic_data_generator import BlobsSyntheticDataGenerator, \
     TimeSeriesSyntheticDataGenerator
 import streamlit as st
 import polars as pl
 from viz.gui_helpers.base_page_names.render_tabs_helpers import render_gender_name_surname_filters, \
-    render_synthetic_data
+    render_synthetic_data, render_time_series_synthetic_data
 from viz.gui_helpers.base_page.helpers import sidebar_controls_basic_setup
 from viz.gui_helpers.clustering_helpers import gui_scaler
 import extra_streamlit_components as stx
@@ -43,20 +42,6 @@ class Experiment(PageNames):
         if selected_tab == "tab_geo_clustering":
             return super().preprocess_clustering(df, geo_scale, selected_tab, scaler)
         return df  # synthetic frames are already feature matrices
-    @staticmethod
-    def time_series_synthetic_kwargs():
-        # Step-1 vertical slice: fixed three-class list. The class-builder UI
-        # (render_time_series_synthetic_data) replaces this in the next stage.
-        return {
-            "instances": [ShapeInstance("peak", 1925, 15),
-                          ShapeInstance("trough", 1955, 15),
-                          ShapeInstance("level_shift", 1970)],
-            "n_per_cluster": 20,
-            "sigma": 0.3,
-            "znorm": True,
-            "amplitude_jitter": False,
-            "seed": 0,
-        }
 
     def render(self):
         page_name, geo_level= self.page_name, self.geo_level
@@ -76,7 +61,10 @@ class Experiment(PageNames):
             df = self.preprocess_clustering(df, geo_level, tab_main_selected, scaler)
             data_generator = None
         elif sub_tab_selected == "time_series":
-            data_generator = TimeSeriesSyntheticDataGenerator(self.time_series_synthetic_kwargs())
+            synthetic_kwargs = render_time_series_synthetic_data(page_name)
+            if synthetic_kwargs is None:  # class list is empty
+                return
+            data_generator = TimeSeriesSyntheticDataGenerator(synthetic_kwargs)
             df, ground_truth_labels = data_generator.generate()
         else: # blobs synthetic data
             synthetic_kwargs = render_synthetic_data()

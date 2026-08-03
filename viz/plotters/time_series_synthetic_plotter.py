@@ -36,3 +36,49 @@ class TimeSeriesSyntheticPlotter:
 
         col_plot, _ = st.columns([7, 3])
         col_plot.pyplot(fig)
+
+    def build_prototype_preview_figure(self, years, protos, labels,
+                                       samples=None, sample_labels=None):
+        """Overlay class prototypes on the year axis; noisy sample draws are
+        alpha-blended behind them when given. Returns the figure so tests can
+        compare renderings pixel by pixel."""
+        cmap = plt.get_cmap("tab10")
+        fig, ax = plt.subplots(figsize=(9, 5))
+        if samples is not None:
+            for row, cls in zip(samples, sample_labels):
+                ax.plot(years, row, color=cmap(int(cls) % 10), alpha=0.15, linewidth=0.7)
+        for idx, (proto, label) in enumerate(zip(protos, labels)):
+            ax.plot(years, proto, color=cmap(idx % 10), linewidth=2.2, label=label)
+        ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0,
+                  title="Classes")
+        ax.set_xlabel("Year")
+        ax.set_ylabel("z-score")
+        ax.set_title("Class prototypes (bold) with sample draws")
+        ax.set_xticks([year for year in years if int(year) % 10 == 0])
+        ax.grid(True, alpha=0.25)
+        return fig
+
+    def plot_prototype_preview(self, years, protos, labels,
+                               samples=None, sample_labels=None):
+        st.pyplot(self.build_prototype_preview_figure(
+            years, protos, labels, samples, sample_labels))
+
+    def build_separation_heatmap_figure(self, matrix, labels):
+        """Signed-rho separation matrix as an annotated heatmap."""
+        size = len(labels)
+        fig, ax = plt.subplots(figsize=(5.5, 4.5))
+        image = ax.imshow(matrix, cmap="RdBu_r", vmin=-1.0, vmax=1.0)
+        ax.set_xticks(range(size), labels=labels, rotation=45, ha="right", fontsize=8)
+        ax.set_yticks(range(size), labels=labels, fontsize=8)
+        for i in range(size):
+            for j in range(size):
+                ax.text(j, i, f"{matrix[i, j]:+.2f}", ha="center", va="center",
+                        fontsize=7,
+                        color="white" if abs(matrix[i, j]) > 0.6 else "black")
+        fig.colorbar(image, ax=ax, label="signed rho")
+        ax.set_title("Separation matrix (signed rho)")
+        fig.tight_layout()
+        return fig
+
+    def plot_separation_heatmap(self, matrix, labels):
+        st.pyplot(self.build_separation_heatmap_figure(matrix, labels))

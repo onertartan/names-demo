@@ -33,6 +33,14 @@ class PageKeys:
     @property
     def selected_sub_tab(self):   return f"selected_sub_tab_{self.page_name}"
 
+    # Time Series synthetic-data builder (Experiment page)
+    @property
+    def ts_class_list(self):        return f"ts_class_list_{self.page_name}"
+    @property
+    def ts_uploaded_file_id(self):  return f"ts_uploaded_file_id_{self.page_name}"
+    @property
+    def ts_pending_import(self):    return f"ts_pending_import_{self.page_name}"
+
 
     @property
     def n_clusters(self):  return f"n_clusters_{self.page_name}"
