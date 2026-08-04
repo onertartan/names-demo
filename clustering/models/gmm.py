@@ -49,10 +49,13 @@ class GMMEngine(BaseClustering):
         model_kwargs: dict,
         save_folder: str,
         saved_file_suffix: str = "",
-        model_specific_metrics: list[str] = []
+        data_generator=None
         ):
+        # The seventh positional argument the helper passes here is the
+        # synthetic data generator; it was previously named
+        # model_specific_metrics and forwarded correctly only by accident.
         saved_file_suffix = f"{model_kwargs['covariance_type']}_{saved_file_suffix}"
-        return super().optimal_k_analysis(df, random_states, k_values, model_kwargs, save_folder,saved_file_suffix, model_specific_metrics)
+        return super().optimal_k_analysis(df, random_states, k_values, model_kwargs, save_folder,saved_file_suffix, data_generator)
 
 
 

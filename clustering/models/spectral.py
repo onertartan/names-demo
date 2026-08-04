@@ -50,8 +50,11 @@ class SpectralClusteringEngine(BaseClustering):
         model_kwargs: dict,
         save_folder: str,
         saved_file_suffix: str = "",
-        model_specific_metrics: list[str] = []
+        data_generator=None
         ):
+        # The seventh positional argument the helper passes here is the
+        # synthetic data generator; it was previously named
+        # model_specific_metrics and forwarded correctly only by accident.
         affinity = model_kwargs["affinity"]
         saved_file_suffix = f"{affinity}_{saved_file_suffix}"
         #n_range = range(4, 15,2) #if self.affinity == "nearest_neighbors" else range(1, 2)
@@ -60,7 +63,7 @@ class SpectralClusteringEngine(BaseClustering):
         for n in n_range:
             model_kwargs["n_neighbors"] = n
             df_summary, metrics_all, metrics_mean, ari_mean, ari_std, consensus_labels_all = super().optimal_k_analysis(
-            df, random_states, k_values, model_kwargs, save_folder, saved_file_suffix+f"_{n}", model_specific_metrics)
+            df, random_states, k_values, model_kwargs, save_folder, saved_file_suffix+f"_{n}", data_generator)
             st.write(f"Completed optimal k analysis for n_neighbors={n}")
         # returns the results for the last n
         return df_summary, metrics_all, metrics_mean, ari_mean, ari_std, consensus_labels_all
