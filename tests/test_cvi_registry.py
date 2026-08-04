@@ -111,24 +111,27 @@ def test_summary_columns_preserve_legacy_names_and_order():
     assert np.isfinite(df_summary["Dunn_mean"]).all()
 
 
-def test_silhouettes_agree_on_time_series_path():
-    kwargs = {
-        "instances": [ShapeInstance("peak", 1925), ShapeInstance("trough", 1955),
-                      ShapeInstance("level_shift", 1970)],
-        "n_per_cluster": 20,
-        "sigma": 0.1,
-        "seed": 0,
-    }
-    df, labels = TimeSeriesSyntheticDataGenerator(kwargs).generate()
-    X = df.to_numpy()
-    sil_cos = CVI_REGISTRY["Silhouette Score (cosine)"].fn(X, labels)
-    sil_euc = CVI_REGISTRY["Silhouette Score (euclidean)"].fn(X, labels)
-    # z-normalized series: the distances are monotone transforms of the same
-    # correlations (d_euc = sqrt(2T * d_cos)), so orderings agree exactly
-    # while the ratio-based silhouette *values* carry a systematic gap that
-    # grows with noise (sqrt compresses large distances): measured 0.105 at
-    # sigma=0.1, 0.179 at 0.2, 0.224 at 0.3. Easy list at sigma=0.1 keeps
-    # value-level agreement tight; a much larger gap here means the series
-    # are no longer equal-norm, i.e. normalization broke.
-    assert sil_cos > 0.5 and sil_euc > 0.5
-    assert abs(sil_cos - sil_euc) < 0.15
+def test_silhouettes_select_same_k_on_time_series_path():
+    # On z-normalized series the two silhouette distances are monotone
+    # transforms of the same correlations (d_euc = sqrt(2T * d_cos)), so
+    # both variants order candidate partitions identically and select the
+    # same k -- the property the experiment depends on, and it holds at
+    # every sigma. Their *values* diverge systematically with noise, because
+    # silhouette is a ratio statistic and the square root compresses large
+    # distances: measured cosine minus euclidean on this class list is
+    # 0.105 at sigma=0.1, 0.179 at 0.2, 0.224 at 0.3 (cosine higher).
+    instances = [ShapeInstance("peak", 1925), ShapeInstance("trough", 1955),
+                 ShapeInstance("level_shift", 1970)]
+    k_values = range(2, 11)
+    for sigma in (0.1, 0.2, 0.3):
+        df, _ = TimeSeriesSyntheticDataGenerator(
+            {"instances": instances, "n_per_cluster": 20,
+             "sigma": sigma, "seed": 0}).generate()
+        X = df.to_numpy()
+        scores_cos, scores_euc = [], []
+        for k in k_values:
+            labels = KMeansEngine(n_clusters=k, random_state=0,
+                                  n_init=5).fit_predict(df)
+            scores_cos.append(CVI_REGISTRY["Silhouette Score (cosine)"].fn(X, labels))
+            scores_euc.append(CVI_REGISTRY["Silhouette Score (euclidean)"].fn(X, labels))
+        assert int(np.argmax(scores_cos)) == int(np.argmax(scores_euc)), f"sigma={sigma}"

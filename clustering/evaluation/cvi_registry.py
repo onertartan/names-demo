@@ -20,10 +20,13 @@ On the two silhouettes: every series on the Time Series path is
 z-normalized, so all vectors have equal norm. For equal-norm vectors
 ``||a - b||^2 = 2T(1 - rho)`` while ``cos(a, b) = rho`` — cosine and
 euclidean distance are monotone transforms of each other, so the two
-silhouette variants track each other closely there and are not independent
-evidence. They can still diverge on the name-count paths, where scaling
-choices leave norms unequal. Both entries stay: a large divergence on the
-Time Series path signals that normalization is not doing what we expect.
+variants order partitions identically and select the same k; they are not
+independent evidence there. Their *values* still diverge systematically
+with noise, because silhouette is a ratio statistic and the square root
+compresses large distances (measured cosine minus euclidean on the easy
+three-class list: 0.105/0.179/0.224 at sigma 0.1/0.2/0.3, cosine higher).
+They can genuinely differ on the name-count paths, where scaling choices
+leave norms unequal.
 """
 from __future__ import annotations
 
@@ -58,7 +61,8 @@ def _silhouette_cosine(X: np.ndarray, labels: np.ndarray) -> float:
 
 def _silhouette_euclidean(X: np.ndarray, labels: np.ndarray) -> float:
     """Silhouette with euclidean distance. See the module docstring for why
-    the two silhouettes agree on the z-normalized Time Series path."""
+    the two silhouettes select the same k on the z-normalized Time Series
+    path while their values diverge with noise."""
     return silhouette_score(X, labels, metric="euclidean")
 
 
