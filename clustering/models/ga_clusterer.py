@@ -14,8 +14,8 @@ from scipy.spatial.distance import cdist, pdist
 from sklearn.metrics import silhouette_score
 
 from clustering.base_clustering import BaseClustering
+from clustering.evaluation.cvi_registry import dunn_index
 
-import pyivm
 # ---------------------------------------------------------------------------
 # Selection strategy enum
 # ---------------------------------------------------------------------------
@@ -38,14 +38,6 @@ class SelectionMethod(str, Enum):
     ROULETTE   = "roulette"
     TOURNAMENT = "tournament"
     TRUNCATION = "truncation"
-
-
-# ---------------------------------------------------------------------------
-# Dunn index
-# ---------------------------------------------------------------------------
-
-def dunn_index(X: np.ndarray, labels: np.ndarray) -> float:
-    return  pyivm.dunn(X, labels)
 
 
 # ---------------------------------------------------------------------------

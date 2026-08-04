@@ -1,5 +1,6 @@
 import io
 import os
+import warnings
 
 import networkx as nx
 from sklearn.metrics import pairwise_distances, calinski_harabasz_score
@@ -11,6 +12,7 @@ from sklearn.metrics import (
     silhouette_score, adjusted_rand_score,
     davies_bouldin_score, pairwise_distances_argmin_min, silhouette_samples
 )
+from clustering.evaluation.cvi_registry import CVI_REGISTRY
 from clustering.evaluation.stability import stability_and_consensus
 import numpy as np
 import pandas as pd
@@ -180,11 +182,7 @@ class BaseClustering:
         using_same_data = False,
         model_specific_metrics: list[str] = []           # e.g., {"Calinski-Harabasz": calinski_harabasz_score}
     ):
-        metrics_all = {"Silhouette Score (cosine)": [],
-                       "Silhouette Score (euclidean)": [],
-                       "Davies-Bouldin Index": [],
-                       "Calinski-Harabasz Index": []
-                       }
+        metrics_all = {key: [] for key in CVI_REGISTRY}
         if cls.__name__ == "KMeansEngine" or cls.__name__ == "TimeSeriesKMeansEngine":
             metrics_all["Inertia"] = []
         elif cls.__name__ == "GMMEngine":
@@ -209,7 +207,8 @@ class BaseClustering:
         for i,seed in enumerate(random_states):
 
             #st.write(f"Running for the random_state:{i}/{len(random_states)}")
-            silhouettes_cosine, silhouettes_euclidean, db_scores,ch_scores, inertias, aics, bics, nlls = [], [],[], [],[], [], [], []
+            cvi_scores = {key: [] for key in CVI_REGISTRY}
+            inertias, aics, bics, nlls = [], [], [], []
 
             seed_start = time.time()
             for k_idx,k in enumerate(k_values):
@@ -224,10 +223,15 @@ class BaseClustering:
                     model_kwargs["n_clusters"] = k
                 engine = cls(random_state=seed, **model_kwargs)
                 labels = engine.fit_predict(df)
-                silhouettes_cosine.append(silhouette_score(df, labels, metric="cosine"))
-                silhouettes_euclidean.append(silhouette_score(df, labels, metric="euclidean"))
-                db_scores.append(davies_bouldin_score(df, labels))
-                ch_scores.append(calinski_harabasz_score(df, labels))
+                X = np.asarray(df)
+                for key, cvi in CVI_REGISTRY.items():
+                    # A metric that raises or degenerates yields NaN for this
+                    # (seed, k) cell instead of aborting the sweep.
+                    try:
+                        value = float(cvi.fn(X, labels))
+                    except Exception:
+                        value = float("nan")
+                    cvi_scores[key].append(value)
                 labels_all[seed][k] = labels
                 labels_tensor[seed, k_idx, :] = labels
 
@@ -246,10 +250,8 @@ class BaseClustering:
                 metrics_all["NegLogLikelihood"].append(nlls)
 
 
-            metrics_all["Silhouette Score (cosine)"].append(silhouettes_cosine)
-            metrics_all["Silhouette Score (euclidean)"].append(silhouettes_euclidean)
-            metrics_all["Calinski-Harabasz Index"].append(ch_scores)
-            metrics_all["Davies-Bouldin Index"].append(db_scores)
+            for key in CVI_REGISTRY:
+                metrics_all[key].append(cvi_scores[key])
             # Update progress and status after loop for one random state is completed
             progress_bar.progress((seed + 1) / num_of_states)
             elapsed_total = time.time() - start_time
@@ -261,7 +263,13 @@ class BaseClustering:
         progress_bar.empty()
         status_text.empty()
         # ---- Mean metrics across seeds ----
-        metrics_mean = {key: np.mean(metrics_all[key], axis=0) for key in metrics_all}
+        # nanmean: a metric that failed for one seed still averages over the
+        # rest; one that failed everywhere stays NaN instead of poisoning the
+        # curve. (No previously saved sweep CSV contains NaN, so historical
+        # output is unaffected by this change.)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            metrics_mean = {key: np.nanmean(metrics_all[key], axis=0) for key in metrics_all}
 
         # ---- Model-independent evaluation ----
         ari_mean, ari_std, consensus_labels_all = \
@@ -296,30 +304,23 @@ class BaseClustering:
         inner list: k_values
         """
         values = [seed_vals[k_index] for seed_vals in metrics_all[metric_name]]
-        return np.mean(values), np.std(values)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            return np.nanmean(values), np.nanstd(values)
 
     @classmethod
     def summarize(cls, metrics_all, ari_mean, ari_std,  k_values):
+        # Column names come from each registry entry (mean_column/std_column),
+        # which pin the exact strings previously saved CSVs already use.
         rows = []
-        for k in k_values:
-            idx = list(k_values).index(k)
-            sil_cos_mean, sil_cos_std = cls.mean_sd_at_k(metrics_all, "Silhouette Score (cosine)", idx)
-            sil_euc_mean, sil_euc_std = cls.mean_sd_at_k(metrics_all, "Silhouette Score (euclidean)", idx)
-            ch_m, ch_s = cls.mean_sd_at_k(metrics_all,"Calinski-Harabasz Index", idx)
-            db_m, db_s = cls.mean_sd_at_k(metrics_all, "Davies-Bouldin Index", idx)
-            row_dict={
-                "Number of clusters": k,
-                "Silhouette_mean (cosine)": sil_cos_mean,
-                "Silhouette_std (cosine)": sil_cos_std,
-                "Silhouette_mean (euclidean)": sil_euc_mean,
-                "Silhouette_std (euclidean)": sil_euc_std,
-                "DaviesBouldin_mean": db_m,
-                "DaviesBouldin_std": db_s,
-                "CalinskiHarabasz_mean": ch_m,
-                "CalinskiHarabasz_std": ch_s,
-                "ARI_mean": ari_mean[idx],
-                "ARI_std": ari_std[idx]
-            }
+        for idx, k in enumerate(k_values):
+            row_dict = {"Number of clusters": k}
+            for cvi in CVI_REGISTRY.values():
+                mean, std = cls.mean_sd_at_k(metrics_all, cvi.key, idx)
+                row_dict[cvi.mean_column] = mean
+                row_dict[cvi.std_column] = std
+            row_dict["ARI_mean"] = ari_mean[idx]
+            row_dict["ARI_std"] = ari_std[idx]
             if cls.__name__ == "KMeansEngine" or cls.__name__=="TimeSeriesKMeansEngine":
                 iner_m, iner_s = cls.mean_sd_at_k(metrics_all, "Inertia", idx)
                 row_dict["Inertia_mean"] = iner_m
