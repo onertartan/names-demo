@@ -33,6 +33,14 @@ class BaseClustering:
         labels = self.model.fit_predict(df) + 1
         return labels
 
+    @classmethod
+    def extra_metric_keys(cls) -> list[str]:
+        """Engine-specific metrics (not CVIs) that optimal_k_analysis
+        produces for this engine, e.g. inertia or AIC/BIC. Plots and
+        summaries append them after the CVI_REGISTRY entries; they must
+        never enter the registry itself."""
+        return []
+
     def get_representatives(self, df_pivot: pd.DataFrame):
         """
         Select cluster representatives in a method-aware way.

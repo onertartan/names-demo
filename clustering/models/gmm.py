@@ -38,6 +38,10 @@ class GMMEngine(BaseClustering):
         self.metric_for_silhouette = "euclidean"
 
     @classmethod
+    def extra_metric_keys(cls) -> list[str]:
+        return ["AIC", "BIC", "NegLogLikelihood"]
+
+    @classmethod
     def optimal_k_analysis(cls,
         df: pd.DataFrame,
         random_states: list[int],

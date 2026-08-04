@@ -32,6 +32,10 @@ class KMeansEngine(BaseClustering):
         """
         self.model = KMeans(n_clusters=n_clusters, n_init=n_init, init="k-means++", random_state=random_state)
         self.metric_for_silhouette = "euclidean"
+
+    @classmethod
+    def extra_metric_keys(cls) -> list[str]:
+        return ["Inertia"]
     # ------------------------------------------------------------------
     def get_centroids(self, X):
         # X parameters is not needed in KMeans, it is kept for compatibility
