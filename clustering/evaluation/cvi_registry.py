@@ -249,7 +249,11 @@ def dunn_index(X: np.ndarray, labels: np.ndarray) -> float:
 def _dunn_d2_D2(X: np.ndarray, labels: np.ndarray) -> float:
     """Generalized Dunn d2/D2: complete-linkage separation (maximum
     distance between points in different clusters) over mean within-cluster
-    pairwise distance."""
+    pairwise distance.
+
+    In the family for an empirical reason, not a taxonomic one: on the two
+    SSA baby-name files this was the only variant selecting the same k on
+    both, while d1/D1 moved from k=7 to k=2."""
     return generalized_dunn(X, labels, d="d2", D="D2")
 
 

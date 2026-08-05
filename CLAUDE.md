@@ -38,8 +38,16 @@ Read `docs/prompt_01_shapes.md`, `docs/prompt_02_library_and_ui.md`, and
 ### Indices actually computed
 
 Per `(seed, k)` in `optimal_k_analysis`: Silhouette (cosine), Silhouette (euclidean),
-Davies–Bouldin, Calinski–Harabasz, Dunn. Davies–Bouldin is minimized; the rest are
-maximized.
+Davies–Bouldin, Calinski–Harabasz, and four generalized Dunn variants — d1/D1, d2/D2,
+d4/D1, d3/D2 (Bezdek & Pal separation × diameter measures, sharing one
+content-addressed pairwise-distance cache in `cvi_registry.py`). Davies–Bouldin is
+minimized; the rest are maximized.
+
+**Any result reported as "Dunn" must name the variant.** `d1/D1` is the reference
+variant — Dunn's original 1974 index, kept for comparability with published
+benchmarks and with everything already stored under `results/`. `d2/D2` earned its
+place empirically, not taxonomically: on the two SSA files it was the only variant
+selecting the same k on both, while `d1/D1` moved from k=7 to k=2.
 
 **Adding an index is one `CVI_REGISTRY` entry and nothing else.** The sweep, the
 summary table, and `OptimalKPlotter` all iterate the registry — no metric name is
