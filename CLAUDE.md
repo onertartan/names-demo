@@ -1,4 +1,9 @@
 # tartan-analytics
+## Before starting work
+
+Run `git status` and report anything uncommitted before making the first
+edit. Do not stage or commit files you did not modify yourself; if a file
+you need to touch already has uncommitted changes, say so and wait.
 
 Streamlit app for name/surname and population analytics across Türkiye and the USA,
 plus a cluster validity experiment in `modules/experimental/`.
