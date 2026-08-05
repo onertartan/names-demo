@@ -73,8 +73,16 @@ class OptimalKPlotter:
         specs = OptimalKPlotter._panel_specs(engine_class, metrics_all)
         num_seeds_to_plot = min(num_seeds_to_plot, len(random_states))
         k_list = list(k_values)
-        chunks = [specs[i:i + MAX_PANEL_COLUMNS]
-                  for i in range(0, len(specs), MAX_PANEL_COLUMNS)]
+        # Balance panel counts across figures: with 10 panels, ceil-balanced
+        # widths give 4+3+3 instead of strict 4+4+2 (and 9 gives 3+3+3
+        # instead of a trailing lone-column figure).
+        n_chunks = -(-len(specs) // MAX_PANEL_COLUMNS)
+        base_width, remainder = divmod(len(specs), n_chunks)
+        widths = [base_width + 1] * remainder + [base_width] * (n_chunks - remainder)
+        chunks, start = [], 0
+        for width in widths:
+            chunks.append(specs[start:start + width])
+            start += width
 
         figures = []
         for chunk in chunks:

@@ -43,7 +43,9 @@ def test_panel_count_follows_registry(monkeypatch):
     base_count = _panel_count(figures)
     # registry entries + the engine's Inertia extra + the ARI panel
     assert base_count == len(CVI_REGISTRY) + 1 + 1
-    assert all(len(fig.axes) // ROWS <= MAX_PANEL_COLUMNS for fig in figures)
+    widths = [len(fig.axes) // ROWS for fig in figures]
+    assert all(width <= MAX_PANEL_COLUMNS for width in widths)
+    assert max(widths) - min(widths) <= 1  # ceil-balanced chunking
     _close(figures)
 
     monkeypatch.setitem(
