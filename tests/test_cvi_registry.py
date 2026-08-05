@@ -2,7 +2,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from clustering.evaluation.cvi_registry import CVI, CVI_REGISTRY, dunn_index
+from clustering.evaluation.cvi_registry import (
+    CVI,
+    CVI_REGISTRY,
+    _distance_cache,
+    dunn_index,
+    generalized_dunn,
+)
 from clustering.models.kmeans import KMeansEngine
 from modules.experimental.shape_library import ShapeInstance
 from modules.experimental.synthetic_data_generator import TimeSeriesSyntheticDataGenerator
@@ -13,7 +19,25 @@ EXPECTED_KEYS = [
     "Davies-Bouldin Index",
     "Calinski-Harabasz Index",
     "Dunn Index",
+    "Dunn Index (d2/D2)",
+    "Dunn Index (d4/D1)",
+    "Dunn Index (d3/D2)",
 ]
+
+DUNN_KEYS = EXPECTED_KEYS[4:]
+
+
+def _outlier_partition():
+    # Cluster 1 carries an outlier pulled toward the others; this is where
+    # the family members diverge most and where a refactor slip would be
+    # least visible.
+    X = np.array([
+        [0.0, 0.0], [0.3, 0.1], [0.1, 0.4], [2.5, 2.5],
+        [10.0, 0.0], [10.2, 0.3], [10.4, 0.1],
+        [0.0, 10.0], [0.3, 10.2], [0.1, 10.4],
+    ])
+    labels = np.array([1, 1, 1, 1, 2, 2, 2, 3, 3, 3])
+    return X, labels
 
 
 def _three_blobs(rng):
@@ -67,6 +91,62 @@ def test_dunn_degenerate_cases_yield_nan():
     assert np.isnan(dunn_index(X_flat, np.array([1, 1, 2, 2])))  # zero diameters
 
 
+def test_dunn_d1_D1_pinned_to_pre_refactor_values():
+    # Values recorded from the pre-refactor dunn_index (commit e70e2e6)
+    # before generalized_dunn existed; the parameterized core must
+    # reproduce the original variant exactly.
+    X1 = np.array([[0.0], [0.1], [10.0], [10.1]])
+    labels1 = np.array([1, 1, 2, 2])
+    assert dunn_index(X1, labels1) == pytest.approx(99.0, rel=1e-12)
+    assert generalized_dunn(X1, labels1, d="d1", D="D1") == pytest.approx(99.0, rel=1e-12)
+
+    X2, labels2 = _outlier_partition()
+    pinned = 2.2360679774997894
+    assert dunn_index(X2, labels2) == pytest.approx(pinned, rel=1e-12)
+    assert generalized_dunn(X2, labels2, d="d1", D="D1") == pytest.approx(pinned, rel=1e-12)
+
+
+def test_dunn_variants_diverge_on_outlier_partition():
+    X, labels = _outlier_partition()
+    values = {key: CVI_REGISTRY[key].fn(X, labels) for key in DUNN_KEYS}
+    assert all(np.isfinite(value) for value in values.values())
+    distinct = sorted(values.values())
+    assert all(later - earlier > 1e-6
+               for earlier, later in zip(distinct, distinct[1:])), values
+
+
+def test_all_dunn_variants_nan_on_degenerate_partitions():
+    X = np.array([[0.0, 0.0], [1.0, 0.5], [2.0, 1.0], [3.0, 1.5]])
+    single_cluster = np.array([1, 1, 1, 1])
+    all_singletons = np.array([1, 2, 3, 4])
+    for key in DUNN_KEYS:
+        assert np.isnan(CVI_REGISTRY[key].fn(X, single_cluster)), key
+        assert np.isnan(CVI_REGISTRY[key].fn(X, all_singletons)), key
+
+
+def test_distance_cache_matches_uncached_and_never_goes_stale():
+    from scipy.spatial.distance import pdist, squareform
+
+    rng = np.random.default_rng(0)
+    X_a = rng.standard_normal((40, 5))
+    X_b = rng.standard_normal((40, 5))  # same shape and dtype, new content
+    labels = np.array([1] * 20 + [2] * 20)
+
+    _distance_cache["fingerprint"] = None  # cold start
+    cold = dunn_index(X_a, labels)
+    warm = dunn_index(X_a, labels)         # served from the cache
+    assert warm == cold
+
+    # The seed-swap scenario: a weaker fingerprint would hand X_a's
+    # distances to X_b here. Compare against an uncached reference.
+    value_b = dunn_index(X_b, labels)
+    distances_b = squareform(pdist(X_b))
+    reference = distances_b[:20, 20:].min() / max(
+        distances_b[:20, :20].max(), distances_b[20:, 20:].max())
+    assert value_b == pytest.approx(reference, rel=1e-12)
+    assert value_b != cold
+
+
 def _tiny_sweep(**kwargs):
     rng = np.random.default_rng(0)
     X, _ = _three_blobs(rng)
@@ -105,6 +185,9 @@ def test_summary_columns_preserve_legacy_names_and_order():
         "DaviesBouldin_mean", "DaviesBouldin_std",
         "CalinskiHarabasz_mean", "CalinskiHarabasz_std",
         "Dunn_mean", "Dunn_std",
+        "Dunn_d2D2_mean", "Dunn_d2D2_std",
+        "Dunn_d4D1_mean", "Dunn_d4D1_std",
+        "Dunn_d3D2_mean", "Dunn_d3D2_std",
         "ARI_mean", "ARI_std",
         "Inertia_mean", "Inertia_std",   # KMeans extras, unchanged
     ]
