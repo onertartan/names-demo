@@ -178,11 +178,19 @@ def difficulty_from_prototypes(
     anti-correlated pair like peak/trough -- actually the easiest pair to
     separate -- as the hardest.
 
-    theta_min_deg is the angle between the two closest prototype directions;
+    theta_min_deg is the angle between the two closest prototype directions.
     theta_spread_deg is the angular deviation noise induces away from a
-    prototype's own direction at amplitude amp_min. ratio = theta_min /
-    theta_spread: >=3 the noise cones are well clear of each other ("kolay"),
-    >=1.5 some overlap ("orta"), otherwise they likely overlap ("zor").
+    prototype's own direction: arctan(sigma / amp_min). A z-normalized
+    prototype has norm sqrt(T) and isotropic noise of scale sigma
+    contributes a perpendicular component of norm ~sigma*sqrt(T-1), so
+    tan(theta) = sigma / amp — the spread is the arctangent of the
+    noise-to-signal ratio. The earlier small-angle form
+    degrees(sigma / amp_min) overstated the spread in the sigma range this
+    experiment runs (and claimed deflections beyond 90 degrees above
+    sigma ~ 1.57, where arctan correctly saturates), which understated
+    ratio and overstated difficulty. ratio = theta_min / theta_spread:
+    >=3 the noise cones are well clear of each other ("kolay"), >=1.5 some
+    overlap ("orta"), otherwise they likely overlap ("zor").
     """
     T = protos.shape[1]
     corr = (protos @ protos.T) / T
@@ -191,7 +199,7 @@ def difficulty_from_prototypes(
     rho_max = float(np.clip(corr[i, j], -1.0, 1.0))
 
     theta_min_deg = float(np.degrees(np.arccos(rho_max)))
-    theta_spread_deg = float(np.degrees(sigma / amp_min))
+    theta_spread_deg = float(np.degrees(np.arctan(sigma / amp_min)))
     ratio = theta_min_deg / theta_spread_deg
 
     if ratio >= 3:

@@ -123,8 +123,11 @@ easiest pair to separate — as the hardest. Fill the diagonal with `-inf` and t
 Remaining quantities:
 
 - `theta_min_deg = degrees(arccos(rho_max))`
-- `theta_spread_deg = degrees(sigma / amp_min)` — the angular deviation noise
-  induces away from the prototype direction
+- `theta_spread_deg = degrees(arctan(sigma / amp_min))` — the angular deviation
+  noise induces away from the prototype direction: the arctangent of the
+  noise-to-signal ratio. (The small-angle form `degrees(sigma / amp_min)`
+  overstates the spread and claims deflections beyond 90° above `sigma ≈ 1.57`;
+  arctan saturates at 90° correctly.)
 - `ratio = theta_min_deg / theta_spread_deg`
 - `verdict`: `ratio >= 3` → `"kolay"`, `>= 1.5` → `"orta"`, else `"zor"`
 
@@ -132,9 +135,9 @@ Expected output, for verification:
 
 | Pool | closest_pair | rho_max | theta_min | ratio (σ=0.3) |
 |---|---|---|---|---|
-| all 16 shapes | `linear_up` / `sigmoid` | +0.973 | 13.2° | 0.77 |
-| `[peak, trough]` | `peak` / `trough` | −1.000 | 180.0° | 10.47 |
-| oscillatory tier | `sine_2` / `damped_sine` | +0.141 | 81.9° | 4.76 |
+| all 16 shapes | `linear_up` / `sigmoid` | +0.973 | 13.2° | 0.79 |
+| `[peak, trough]` | `peak` / `trough` | −1.000 | 180.0° | 10.78 |
+| oscillatory tier | `sine_2` / `damped_sine` | +0.141 | 81.9° | 4.90 |
 
 If your numbers disagree, the formulas or the sign handling are wrong.
 
