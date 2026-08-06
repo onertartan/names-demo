@@ -1,4 +1,4 @@
-"""Time-positioned shape classes on the fixed 1901-2000 year axis.
+"""Time-positioned shape classes on the fixed 1880-2025 year axis.
 
 Positions base shapes from ``shapes.SHAPES`` at explicit years, making the
 pair (base shape, time position) the ground-truth class identity. Two peaks
@@ -8,13 +8,17 @@ Euclidean-family distances are valid downstream (no DTW anywhere).
 
 Geometry conventions (normative; see docs/prompt_02_library_and_ui.md §2):
 
-- Years 1901-2000, ``T_YEARS = 100`` grid points, normalized step ``1/99``.
-  All year<->t conversion goes through ``year_to_t`` / ``t_to_year``. The
-  evaluation grid itself is ``np.linspace(0, 1, 100)``: mathematically equal
-  to ``year_to_t(YEARS)`` but not bit-identical, and the reference
+- Years 1880-2025, ``T_YEARS = 146`` grid points, normalized step
+  ``1/(YEAR_MAX - YEAR_MIN)`` (currently 1/145 -- the divisor is the year
+  span, not T_YEARS). All year<->t conversion goes through ``year_to_t`` /
+  ``t_to_year``. The evaluation grid itself is
+  ``np.linspace(0, 1, T_YEARS)``: mathematically equal to
+  ``year_to_t(YEARS)`` but not bit-identical, and the reference
   correlations pin the linspace values (final-ulp differences change which
   grid points fall inside the rectangular shapes' closed supports).
-- ``width`` is in years; ``w_t = width / 99``. Meaning per shape: FWHM for
+- ``width`` is in years; ``w_t = width / (YEAR_MAX - YEAR_MIN)``. Widths
+  stay fixed in years when the window changes -- a class denotes a real
+  historical event, not a fraction of the axis. Meaning per shape: FWHM for
   ``peak``/``trough``; full support for ``impulse``/``cylinder``; the
   10%-90% transition duration for ``sigmoid``; the full duration of the
   rise for ``skewed_peak``/``funnel``.
@@ -25,9 +29,10 @@ Geometry conventions (normative; see docs/prompt_02_library_and_ui.md §2):
   ``tests/test_shapes.py``; the positioned variants are a separate
   parameterization, not a drift to "fix".
 - Shapes are clipped at the window edges, never wrapped. A peak centred at
-  1905 is a truncated peak, which is a legitimate class.
+  1885 is a truncated peak, which is a legitimate class.
 - ``suggested_min_gap`` places its trial pair symmetrically about the
-  window centre, ``y1 = 1901 + (99 - g)//2`` and ``y2 = y1 + g``. Placement
+  window centre, ``y1 = YEAR_MIN + (T_YEARS - 1 - g)//2`` and
+  ``y2 = y1 + g``. Placement
   is part of the definition: anchoring at a fixed year instead changes the
   answer for edge-sensitive shapes (sigmoid, cylinder, level_shift),
   because clipping at the window boundary alters the correlation.
@@ -45,17 +50,18 @@ import numpy as np
 
 from modules.experimental import shapes
 
-YEARS: np.ndarray = np.arange(1901, 2001)   # dtype=int, length 100
-YEAR_MIN, YEAR_MAX = 1901, 2000
-T_YEARS = 100
+YEARS: np.ndarray = np.arange(1880, 2026)   # dtype=int, length 146
+YEAR_MIN, YEAR_MAX = 1880, 2025
+T_YEARS = 146
 
-_SPAN = YEAR_MAX - YEAR_MIN                 # 99 -- the grid step denominator
+_SPAN = YEAR_MAX - YEAR_MIN                 # 145 -- the grid step denominator
 _T_GRID = np.linspace(0.0, 1.0, T_YEARS)
 _GAP_RHO_TARGET = 0.4
 
 
 def year_to_t(year: int | float | np.ndarray) -> float | np.ndarray:
-    """Convert years (scalar or array) to normalized t; the step is 1/99."""
+    """Convert years (scalar or array) to normalized t; the step is
+    1/(YEAR_MAX - YEAR_MIN)."""
     t = (np.asarray(year, dtype=float) - YEAR_MIN) / _SPAN
     return float(t) if np.ndim(t) == 0 else t
 
@@ -104,7 +110,7 @@ WIDTH_DEFAULTS: dict[str, int] = {
     "funnel": 50,
 }
 
-WIDTH_MIN, WIDTH_MAX = 2, 100
+WIDTH_MIN, WIDTH_MAX = 2, T_YEARS
 
 
 @dataclass(frozen=True)
@@ -223,7 +229,8 @@ def _positioned_series(base: str, t: np.ndarray, c: float,
 
 
 def instance_prototypes(instances: list[ShapeInstance]) -> np.ndarray:
-    """Evaluate and z-normalize instances on the year grid; returns (k, 100).
+    """Evaluate and z-normalize instances on the year grid; returns
+    (k, T_YEARS).
 
     Validates the list first. ``PositionKind.NONE`` shapes evaluate their
     base lambda from ``shapes.SHAPES`` directly.

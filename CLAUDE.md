@@ -71,8 +71,8 @@ z-normalized, so all vectors have equal norm; for equal-norm vectors
 distance monotone transforms of each other. Orderings therefore agree exactly — both
 variants select the same k — but their *values* diverge systematically with noise,
 because silhouette is a ratio statistic and the square root compresses large
-distances: measured cosine minus euclidean on the easy three-class list is 0.105 at
-sigma 0.1, 0.179 at 0.2, 0.224 at 0.3, cosine always higher. A divergence far outside
+distances: measured cosine minus euclidean on the easy three-class list is 0.103 at
+sigma 0.1, 0.177 at 0.2, 0.222 at 0.3, cosine always higher. A divergence far outside
 that pattern means normalization is not behaving as expected. The two can
 legitimately differ on the name-count paths, where norms are unequal.
 
@@ -106,16 +106,18 @@ legitimately differ on the name-count paths, where norms are unequal.
   truth k comes from that list. Across sweep seeds, only the noise draw changes — the
   instance list and therefore k_true must not be resampled, and `optimal_k_analysis`'s
   `kwargs["centers"] = k` is ignored by the time-series generator.
-- **The synthetic time axis is years 1901–2000, `T = 100`,** grid step `1/99`. Fixed by
-  `shape_library.py`; `GenConfig.T` stays generic at 128 for other callers.
+- **The synthetic time axis is years 1880–2025, `T = 146`,** grid step
+  `1/(YEAR_MAX - YEAR_MIN)` = `1/145`. Fixed by `shape_library.py`; `GenConfig.T`
+  stays generic at 128 for other callers.
 - **Positioned shapes are clipped at the window edge, never wrapped.** A peak centred
-  at 1905 is a truncated peak, which is a legitimate class. Periodic boundaries would
-  make `@1905` and `@1995` near-identical.
+  at 1885 is a truncated peak, which is a legitimate class. Periodic boundaries would
+  make `@1885` and `@2020` near-identical.
 
 ### Width convention
 
-Normative. `w_t = W / 99` for a width `W` given in years. Prototypes are evaluated on
-`np.linspace(0, 1, 100)`; route every year conversion through `year_to_t`.
+Normative. `w_t = W / (YEAR_MAX - YEAR_MIN)` for a width `W` given in years (widths
+stay fixed in years when the window changes). Prototypes are evaluated on
+`np.linspace(0, 1, T_YEARS)`; route every year conversion through `year_to_t`.
 
 | Shape | `width` means | Formula |
 |---|---|---|
@@ -130,7 +132,7 @@ Bounds are inclusive, unlike the base lambdas in `shapes.py`, which use strict
 comparisons and are pinned by `tests/test_shapes.py`. That difference is intentional.
 
 `suggested_min_gap` places the pair centred in the window
-(`y1 = 1901 + (99 - g)//2`) and scans `g` upward; `rho(g)` is non-monotone for the
+(`y1 = YEAR_MIN + (T_YEARS - 1 - g)//2`) and scans `g` upward; `rho(g)` is non-monotone for the
 periodic shapes, so bisection is unsafe. Reference values live in
 `docs/prompt_02_library_and_ui.md` §2. If one drifts, fix the code — never re-tune the
 geometry to match a number.

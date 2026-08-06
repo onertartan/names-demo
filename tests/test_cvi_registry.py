@@ -202,7 +202,7 @@ def test_silhouettes_select_same_k_on_time_series_path():
     # every sigma. Their *values* diverge systematically with noise, because
     # silhouette is a ratio statistic and the square root compresses large
     # distances: measured cosine minus euclidean on this class list is
-    # 0.105 at sigma=0.1, 0.179 at 0.2, 0.224 at 0.3 (cosine higher).
+    # 0.103 at sigma=0.1, 0.177 at 0.2, 0.222 at 0.3 (cosine higher).
     instances = [ShapeInstance("peak", 1925), ShapeInstance("trough", 1955),
                  ShapeInstance("level_shift", 1970)]
     k_values = range(2, 11)

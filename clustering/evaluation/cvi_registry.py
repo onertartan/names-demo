@@ -55,7 +55,7 @@ variants order partitions identically and select the same k; they are not
 independent evidence there. Their *values* still diverge systematically
 with noise, because silhouette is a ratio statistic and the square root
 compresses large distances (measured cosine minus euclidean on the easy
-three-class list: 0.105/0.179/0.224 at sigma 0.1/0.2/0.3, cosine higher).
+three-class list: 0.103/0.177/0.222 at sigma 0.1/0.2/0.3, cosine higher).
 They can genuinely differ on the name-count paths, where scaling choices
 leave norms unequal.
 """

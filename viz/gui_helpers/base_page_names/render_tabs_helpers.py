@@ -221,7 +221,7 @@ def _render_class_builder(page_name, session, keys, instances):
             # Width is keyed per base shape so each shape remembers its own
             # width and starts from its own default.
             width = int(col_width.number_input("Genişlik (yıl)", min_value=2,
-                                               max_value=100,
+                                               max_value=T_YEARS,
                                                value=WIDTH_DEFAULTS[base],
                                                key=f"ts_width_{base}_{page_name}"))
 

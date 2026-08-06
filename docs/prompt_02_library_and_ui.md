@@ -62,7 +62,7 @@ These splits matter because two invariants must each live in exactly one place: 
 **amplitude → noise → z-normalization** order, and the **signed-rho** closest-pair
 logic. Do not reimplement either in the new module.
 
-Leave `GenConfig.T`'s default at 128. The year axis fixes `T = 100`, but that is the
+Leave `GenConfig.T`'s default at 128. The year axis fixes `T = 146`, but that is the
 caller's job (§2), not a change to the generic library.
 
 ## 2. New module: `modules/experimental/shape_library.py`
@@ -74,20 +74,22 @@ round-trip test can run without Streamlit.
 ### Time axis
 
 ```python
-YEARS: np.ndarray = np.arange(1901, 2001)   # dtype=int, length 100
-YEAR_MIN, YEAR_MAX = 1901, 2000
-T_YEARS = 100
+YEARS: np.ndarray = np.arange(1880, 2026)   # dtype=int, length 146
+YEAR_MIN, YEAR_MAX = 1880, 2025
+T_YEARS = 146
 ```
 
-The grid is `np.linspace(0, 1, 100)`, so the step is `1/99`, not `1/100`:
+The grid is `np.linspace(0, 1, 146)`, so the step is `1/145`, not `1/146` — the
+divisor is `YEAR_MAX - YEAR_MIN`, not `T_YEARS`, and must be derived from the
+constants rather than written as a literal:
 
 ```
-year_to_t(y) = (y - YEAR_MIN) / 99
-w_t          = width_in_years / 99
+year_to_t(y) = (y - YEAR_MIN) / 145
+w_t          = width_in_years / 145
 ```
 
 Keep the conversion in exactly one pair of helpers (`year_to_t`, `t_to_year`); do not
-scatter the arithmetic. Getting the 99 wrong is the single most likely cause of the
+scatter the arithmetic. Getting the 145 wrong is the single most likely cause of the
 reference values below failing to reproduce.
 
 ### Position kinds
@@ -130,9 +132,9 @@ report it rather than adjusting.
 | `level_shift` | n/a | step at `c` |
 | `sine_1`, `sine_2`, `damped_sine` | n/a | `position` is a phase shift in years |
 
-Shapes outside the window are **clipped, never wrapped**. A peak centred at 1905 with
+Shapes outside the window are **clipped, never wrapped**. A peak centred at 1885 with
 width 15 is a truncated peak, which is a legitimate class. Periodic boundaries would
-make `@1905` and `@1995` near-identical.
+make `@1885` and `@2020` near-identical.
 
 ### The instance model
 
@@ -150,12 +152,12 @@ class ShapeInstance:
 ```
 
 `instance_prototypes(instances: list[ShapeInstance]) -> np.ndarray` returns
-`(k, 100)`, z-normalized, reusing `shapes.zscore`.
+`(k, 146)`, z-normalized, reusing `shapes.zscore`.
 
 Validation raising `ValueError` naming the offending instance:
 
-- `position` in `[1901, 2000]`
-- `width` between 2 and 100
+- `position` in `[1880, 2025]`
+- `width` between 2 and 146
 - `position` is `None` exactly when the base shape is `PositionKind.NONE`
 - no duplicate `key` in the list
 
@@ -178,7 +180,7 @@ achieves it.
 Two conventions the gap scan depends on, both normative:
 
 - **Placement is centred.** For a candidate gap `g`, place the pair at
-  `y1 = 1901 + (99 - g)//2` and `y2 = y1 + g`. Anchoring at a fixed year instead
+  `y1 = YEAR_MIN + (T_YEARS - 1 - g)//2` and `y2 = y1 + g`. Anchoring at a fixed year instead
   changes the answer for edge-sensitive shapes, because clipping at the window
   boundary alters the correlation. Centred placement also matches how quick-add
   spreads instances across the window.
@@ -190,23 +192,23 @@ State both in the module docstring; neither is visible from the signature.
 
 ### Reference values
 
-Signed rho after z-normalization. **Evaluate on `np.linspace(0, 1, 100)`**, not on
-`(YEARS - 1901)/99` — the two differ by one ulp at a boundary grid point, which is
+Signed rho after z-normalization. **Evaluate on `np.linspace(0, 1, 146)`**, not on
+`(YEARS - 1880)/145` — the two differ by one ulp at a boundary grid point, which is
 enough to move `cylinder` from −0.200 to −0.180. Route every conversion through
 `year_to_t` so no caller rebuilds the grid a second way.
 
 | Pair | rho |
 |---|---|
-| `peak@1935w15` vs `peak@1945w15` | +0.406 |
-| `peak@1935w15` vs `peak@1950w15` | +0.031 |
-| `peak@1935w15` vs `peak@1955w15` | −0.182 |
-| `peak@1935w5` vs `peak@1945w5` | −0.077 |
-| `peak@1935w30` vs `peak@1965w30` | −0.361 |
-| `impulse@1930w6` vs `impulse@1940w6` | −0.064 |
-| `cylinder@1930w50` vs `cylinder@1960w50` | −0.200 |
-| `sigmoid@1930w20` vs `sigmoid@1960w20` | **+0.668** |
-| `level_shift@1930` vs `level_shift@1960` | **+0.533** |
-| `level_shift@1930` vs `level_shift@1980` | +0.330 |
+| `peak@1935w15` vs `peak@1945w15` | +0.456 |
+| `peak@1935w15` vs `peak@1950w15` | +0.113 |
+| `peak@1935w15` vs `peak@1955w15` | −0.082 |
+| `peak@1935w5` vs `peak@1945w5` | −0.050 |
+| `peak@1935w30` vs `peak@1965w30` | −0.086 |
+| `impulse@1930w6` vs `impulse@1940w6` | −0.046 |
+| `cylinder@1930w50` vs `cylinder@1960w50` | +0.096 |
+| `sigmoid@1930w20` vs `sigmoid@1960w20` | **+0.754** |
+| `level_shift@1930` vs `level_shift@1960` | **+0.656** |
+| `level_shift@1930` vs `level_shift@1980` | +0.489 |
 | `peak@1935w15` vs `trough@1935w15` | −1.000 |
 
 `suggested_min_gap` expected results:
@@ -215,16 +217,16 @@ enough to move `cylinder` from −0.200 to −0.180. Route every conversion thro
 |---|---|---|
 | `peak` | 5 | 4 |
 | `peak` | 15 | 11 |
-| `peak` | 30 | 17 |
-| `impulse` | 6 | 4 |
-| `cylinder` | 50 | 16 |
-| `sigmoid` | 20 | 55 |
-| `level_shift` | — | 43 |
+| `peak` | 30 | 19 |
+| `impulse` | 6 | 3 |
+| `cylinder` | 50 | 20 |
+| `sigmoid` | 20 | 73 |
+| `level_shift` | — | 63 |
 
 The last two rows are the reason `flag_pairs` exists. Translation barely separates a
 step or a broad sigmoid, because two of them agree everywhere except the window
-between them. A 43-year gap allows at most two usable `level_shift` classes in a
-100-year window. A UI that lets a user build three without warning produces an
+between them. A 63-year gap allows at most two usable `level_shift` classes in a
+146-year window. A UI that lets a user build three without warning produces an
 unsolvable problem and makes the CVIs look broken when they are not.
 
 ## 3. New generator class
@@ -251,7 +253,7 @@ Expected `kwargs`: `instances` (list of `ShapeInstance`), plus the `GenConfig` f
 The returned DataFrame must have columns equal to `YEARS` (integer year labels), so
 downstream plotting and `tab_clustering_pca` — which does
 `df_pivot.drop(columns=["clusters"])` — keep working. Build it from
-`shapes.make_dataset_from_prototypes` with `GenConfig(T=100, ...)`.
+`shapes.make_dataset_from_prototypes` with `GenConfig(T=146, ...)`.
 
 While you are in this file, fix the ABC's return annotation: it declares
 `-> pd.DataFrame` but every implementation returns a tuple.
@@ -329,8 +331,8 @@ property to `PageKeys`. `base_page.py` should then need no functional change, an
 geo path must keep working unaltered.
 
 **Plotting on the `time_series` sub-tab.** `SyntheticDataPlotter` draws a 2-D scatter
-of the first two feature columns, which for time series means year 1901 against year
-1902 — meaningless axes. Use the new sub-tab key to skip that scatter for
+of the first two feature columns, which for time series means year 1880 against year
+1881 — meaningless axes. Use the new sub-tab key to skip that scatter for
 `time_series` and draw instead an overlay of the generated series on the year axis,
 coloured by predicted cluster. The PCA plot continues to run as normal. The `blobs`
 sub-tab keeps the scatter.
@@ -345,12 +347,12 @@ on the same path.
 
 Add `tests/test_shape_library.py`:
 
-- `year_to_t` / `t_to_year` round-trip for 1901, 1950, 2000, and `year_to_t(2000) == 1.0`
+- `year_to_t` / `t_to_year` round-trip for 1880, 1950, 2025, and `year_to_t(2025) == 1.0`
 - every reference rho in §2 reproduces within `atol=0.01`, and every
   `suggested_min_gap` value reproduces exactly
 - validation raises on out-of-range years, duplicate keys, a position given for a
   `NONE` shape, and a position omitted for a positionable one
-- clipping: `peak@1905w15` is truncated, not wrapped — assert the final years sit
+- clipping: `peak@1885w15` is truncated, not wrapped — assert the final years sit
   near the series minimum
 - JSON round-trip of a class list reproduces identical prototypes
 - `TimeSeriesSyntheticDataGenerator` returns a DataFrame whose columns equal `YEARS`,

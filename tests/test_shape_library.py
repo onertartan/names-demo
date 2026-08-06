@@ -24,10 +24,10 @@ from modules.experimental.synthetic_data_generator import TimeSeriesSyntheticDat
 
 
 def test_year_t_roundtrip_and_endpoints():
-    for year in (1901, 1950, 2000):
+    for year in (1880, 1950, 2025):
         assert t_to_year(year_to_t(year)) == pytest.approx(year, abs=1e-9)
-    assert year_to_t(1901) == 0.0
-    assert year_to_t(2000) == 1.0
+    assert year_to_t(1880) == 0.0
+    assert year_to_t(2025) == 1.0
 
 
 def test_position_kind_table_covers_all_shapes():
@@ -37,16 +37,16 @@ def test_position_kind_table_covers_all_shapes():
 # --- Reference values (docs/prompt_02_library_and_ui.md, section 2) ---
 
 REFERENCE_RHO = [
-    (ShapeInstance("peak", 1935, 15), ShapeInstance("peak", 1945, 15), +0.406),
-    (ShapeInstance("peak", 1935, 15), ShapeInstance("peak", 1950, 15), +0.031),
-    (ShapeInstance("peak", 1935, 15), ShapeInstance("peak", 1955, 15), -0.182),
-    (ShapeInstance("peak", 1935, 5), ShapeInstance("peak", 1945, 5), -0.077),
-    (ShapeInstance("peak", 1935, 30), ShapeInstance("peak", 1965, 30), -0.361),
-    (ShapeInstance("impulse", 1930, 6), ShapeInstance("impulse", 1940, 6), -0.064),
-    (ShapeInstance("cylinder", 1930, 50), ShapeInstance("cylinder", 1960, 50), -0.200),
-    (ShapeInstance("sigmoid", 1930, 20), ShapeInstance("sigmoid", 1960, 20), +0.668),
-    (ShapeInstance("level_shift", 1930), ShapeInstance("level_shift", 1960), +0.533),
-    (ShapeInstance("level_shift", 1930), ShapeInstance("level_shift", 1980), +0.330),
+    (ShapeInstance("peak", 1935, 15), ShapeInstance("peak", 1945, 15), +0.456),
+    (ShapeInstance("peak", 1935, 15), ShapeInstance("peak", 1950, 15), +0.113),
+    (ShapeInstance("peak", 1935, 15), ShapeInstance("peak", 1955, 15), -0.082),
+    (ShapeInstance("peak", 1935, 5), ShapeInstance("peak", 1945, 5), -0.050),
+    (ShapeInstance("peak", 1935, 30), ShapeInstance("peak", 1965, 30), -0.086),
+    (ShapeInstance("impulse", 1930, 6), ShapeInstance("impulse", 1940, 6), -0.046),
+    (ShapeInstance("cylinder", 1930, 50), ShapeInstance("cylinder", 1960, 50), +0.096),
+    (ShapeInstance("sigmoid", 1930, 20), ShapeInstance("sigmoid", 1960, 20), +0.754),
+    (ShapeInstance("level_shift", 1930), ShapeInstance("level_shift", 1960), +0.656),
+    (ShapeInstance("level_shift", 1930), ShapeInstance("level_shift", 1980), +0.489),
     (ShapeInstance("peak", 1935, 15), ShapeInstance("trough", 1935, 15), -1.000),
 ]
 
@@ -66,11 +66,11 @@ def test_reference_rho(inst_a, inst_b, expected):
     [
         ("peak", 5, 4),
         ("peak", 15, 11),
-        ("peak", 30, 17),
-        ("impulse", 6, 4),
-        ("cylinder", 50, 16),
-        ("sigmoid", 20, 55),
-        ("level_shift", None, 43),
+        ("peak", 30, 19),
+        ("impulse", 6, 3),
+        ("cylinder", 50, 20),
+        ("sigmoid", 20, 73),
+        ("level_shift", None, 63),
     ],
 )
 def test_suggested_min_gap_reference(base, width, expected):
@@ -89,7 +89,7 @@ def test_suggested_min_gap_computed_for_phase_shapes():
 # --- Validation ---
 
 def test_validation_rejects_out_of_range_years():
-    for year in (1900, 2001):
+    for year in (1879, 2026):
         with pytest.raises(ValueError, match="position"):
             validate_instances([ShapeInstance("peak", year)])
 
@@ -146,8 +146,8 @@ def test_instance_prototypes_shape_and_normalization():
 
 
 def test_clipping_truncates_instead_of_wrapping():
-    proto = instance_prototypes([ShapeInstance("peak", 1905, 15)])[0]
-    assert YEARS[np.argmax(proto)] == 1905
+    proto = instance_prototypes([ShapeInstance("peak", 1885, 15)])[0]
+    assert YEARS[np.argmax(proto)] == 1885
     # The right tail sits at the baseline, i.e. near the series minimum;
     # wrapping would lift the final years back up the peak's far shoulder.
     tail = proto[-5:]

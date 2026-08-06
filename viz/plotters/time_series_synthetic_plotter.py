@@ -7,8 +7,8 @@ import streamlit as st
 class TimeSeriesSyntheticPlotter:
     """Plots for the synthetic time-series sub-tab of the Experiment page.
 
-    SyntheticDataPlotter's 2-D feature scatter would put year 1901 against
-    year 1902 here, so the series are drawn on the year axis instead.
+    SyntheticDataPlotter's 2-D feature scatter would put year 1880 against
+    year 1881 here, so the series are drawn on the year axis instead.
     """
 
     def plot_series_by_cluster(self, df_pivot: pd.DataFrame):
