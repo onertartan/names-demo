@@ -56,7 +56,8 @@ class HierarchicalBaseClusteringEngine(BaseClustering):
         df_out = df.copy()
         df_out["clusters"] = labels
         self.plot_dendrogram(df.index)
-        return df_out
+        return labels
+       # return df_out
 
     # ------------------------------------------------------------------
 

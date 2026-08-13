@@ -141,6 +141,7 @@ class PageNames(BasePage):
         name_surname_selection, selected_years, gender_list = render_gender_name_surname_filters(page_name,cols)
         df = self.preprocessing_initial_filtering(name_surname_selection, selected_years, gender_list, cols, geo_level)
         tab_selected = render_tab_selection(page_name,geo_level)
+        st.header(tab_selected)
         if  tab_selected=="tab_geo_clustering":  # tabs- 1.1, 1.2, 1.3
             self.tab_geo_and_name_clustering(df,  tab_selected, geo_level) # clustering tab
         elif tab_selected=="tab_name_trend_clustering":
@@ -206,6 +207,8 @@ class PageNames(BasePage):
                         clusters_df=pd.DataFrame({"cluster": 1,"name":pivot_df.columns}),
                         title="Cluster Name Trajectories",
                     ).plot()
+                st.header("base_page_names 210: st.dataframe(df)")
+                st.dataframe(df)
 
     def tab_name_trend_clustering(self, df, page_name, tab_selected, geo_level=None):
         """ Name Trend Plotting Tab: Uses the same ui with subtab2.1 rank bump"""
