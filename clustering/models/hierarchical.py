@@ -20,18 +20,29 @@ class HierarchicalBaseClusteringEngine(BaseClustering):
     Used for structural validation / robustness.
     """
 
+    # scipy computes these linkages from whatever condensed distances it is
+    # given, silently and wrongly for non-euclidean metrics -- they are only
+    # defined in euclidean geometry.
+    LINKAGES_REQUIRING_EUCLIDEAN = ("ward", "centroid", "median")
+
     def __init__(
         self,
         n_clusters: int,
         metric: str,
-        linkage_method: str,
+        linkage_method: str = "average",
         random_state: int = -1 # included for interface compatibility
     ):
+        if (linkage_method in self.LINKAGES_REQUIRING_EUCLIDEAN
+                and metric != "euclidean"):
+            raise ValueError(
+                f"linkage_method {linkage_method!r} is only defined for "
+                f"euclidean distances; got metric {metric!r}. scipy would "
+                f"compute a meaningless hierarchy without warning.")
         self.n_clusters = n_clusters
         self.metric = metric
-        self.linkage_method = "average"
+        self.linkage_method = linkage_method
         self.Z = None
-        self.metric_for_silhouette = "cosine"
+        self.metric_for_silhouette = metric
         self.model = self  # for interface compatibility
 
 
