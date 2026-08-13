@@ -1,0 +1,77 @@
+--- /mnt/user-data/uploads/shapes.py	2026-08-13 17:10:20.119555000 +0000
++++ shapes_patched.py	2026-08-13 17:11:57.068637384 +0000
+@@ -93,6 +93,41 @@
+     znorm: bool = True
+     amplitude_jitter: bool = False
+     amp_range: tuple[float, float] = (0.5, 2.0)
++    phi: float | None = None  # AR(1) coefficient from the manifest; None = white
++
++
++def ar1_noise(
++    n_series: int,
++    n_timesteps: int,
++    phi: float,
++    rng: np.random.Generator,
++) -> np.ndarray:
++    """Stationary AR(1) noise per the frozen specification
++    (kosum_protokolu_v5_3.md lines 144-149):
++
++        x_0 ~ N(0, 1)
++        x_t = phi * x_{t-1} + sqrt(1 - phi^2) * eps_t,   eps_t ~ N(0, 1) iid
++
++    Forbidden initializations (protocol-listed, do NOT reintroduce):
++    ``x_0 = 0`` and ``x_0 = sqrt(1 - phi^2) * eps_0``. The frozen init makes
++    the process exactly stationary: Var(x_t) = 1 for every t and
++    Corr(x_t, x_{t+h}) = phi^h, so ``cfg.sigma`` scales AR noise and white
++    noise identically.
++
++    Returns shape (n_series, n_timesteps), unit marginal variance. sigma
++    scaling is the caller's job, preserving the frozen
++    amplitude -> noise -> z-norm ordering.
++    """
++    if not (-1.0 < phi < 1.0):
++        raise ValueError(f"phi must be in (-1, 1) for stationarity, got {phi}")
++    x = np.empty((n_series, n_timesteps), dtype=np.float64)
++    # Frozen init: x_0 ~ N(0,1). NOT x_0 = 0, NOT x_0 = sqrt(1-phi^2)*eps_0.
++    x[:, 0] = rng.standard_normal(n_series)
++    innovation_scale = np.sqrt(1.0 - phi * phi)
++    eps = rng.standard_normal((n_series, n_timesteps - 1))
++    for t in range(1, n_timesteps):
++        x[:, t] = phi * x[:, t - 1] + innovation_scale * eps[:, t - 1]
++    return x
+ 
+ 
+ def make_dataset_from_prototypes(
+@@ -104,9 +139,13 @@
+     ``protos.shape[1]``, not from ``cfg.T``, which only tells ``make_dataset``
+     how to evaluate named prototypes.
+ 
+-    Per sample: X = a * prototype + sigma * gauss, then, if cfg.znorm, X is
++    Per sample: X = a * prototype + sigma * noise, then, if cfg.znorm, X is
+     z-normalized. The order -- amplitude, then noise, then normalization --
+-    is load-bearing and must not change.
++    is load-bearing and must not change. Noise is white
++    (``rng.standard_normal``) when ``cfg.phi`` is None, and frozen-spec
++    AR(1) (``ar1_noise``, unit marginal variance) when the manifest supplies
++    phi; both have unit variance, so sigma means the same thing on both
++    branches.
+ 
+     z-normalization mathematically cancels the amplitude factor, since
+     z(a * phi) == z(phi) for a > 0. But because noise is added *before* that
+@@ -129,8 +168,14 @@
+             a = rng.uniform(cfg.amp_range[0], cfg.amp_range[1], size=(n, 1))
+         else:
+             a = 1.0
+-        gauss = rng.standard_normal((n, T))
+-        X[sl] = a * protos[i] + cfg.sigma * gauss
++        # Noise branch is decided by the manifest: phi present -> frozen
++        # AR(1); phi absent (None) -> the original white path, kept
++        # bit-identical (same rng call, same consumption order).
++        if cfg.phi is None:
++            noise = rng.standard_normal((n, T))
++        else:
++            noise = ar1_noise(n, T, cfg.phi, rng)
++        X[sl] = a * protos[i] + cfg.sigma * noise
+         y[sl] = i
+ 
+     if cfg.znorm:

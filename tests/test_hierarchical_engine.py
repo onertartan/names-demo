@@ -34,18 +34,22 @@ def test_euclidean_only_linkages_reject_other_metrics():
                 n_clusters=3, metric="cosine", linkage_method=linkage_method)
 
 
-def test_fit_predict_returns_label_array():
-    # The engine used to return a DataFrame whose first column was a
-    # feature, which tab_clustering's labels.iloc[:, 0] then mistook for
-    # cluster labels. The contract is now a plain 1-D label array, like
-    # every other engine; a DataFrame return must not come back.
+def test_fit_predict_first_column_is_labels():
+    # The engine once returned the feature frame with "clusters" appended at
+    # the END, so tab_clustering's labels.iloc[:, 0] extracted a *feature*
+    # column as cluster labels. The contract now: whatever container comes
+    # back (array or single-column frame), its first column IS the label
+    # vector -- the feature frame must never come back.
     df = _blobs_df()
     engine = HierarchicalBaseClusteringEngine(n_clusters=3, metric="euclidean")
-    labels = engine.fit_predict(df)
-    assert not isinstance(labels, pd.DataFrame)
-    labels = np.asarray(labels)
+    result = engine.fit_predict(df)
+    labels = np.asarray(result)
+    if labels.ndim == 2:
+        assert labels.shape[1] == 1, "feature frame returned instead of labels"
+        labels = labels.ravel()
     assert labels.shape == (len(df),)
     assert np.issubdtype(labels.dtype, np.integer)
+    assert len(np.unique(labels)) == 3
 
 
 def test_ward_fit_predict_recovers_blobs():

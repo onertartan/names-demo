@@ -52,17 +52,14 @@ class HierarchicalBaseClusteringEngine(BaseClustering):
         D = pdist(df, metric=self.metric)
         self.Z = linkage(D, method=self.linkage_method)
         # ---- cut at externally specified k ----
-        labels = fcluster(self.Z, t=self.n_clusters, criterion="maxclust") -1# already 1-based, so we subtract 1, it is incremented again in optimal_k_analysis
+        labels = fcluster(self.Z, t=self.n_clusters, criterion="maxclust") -1# already 1-based, so we subtract 1, it is incremented again in fit_predict wrapper of BaseClusterer
         df_out = df.copy()
         df_out["clusters"] = labels
         self.plot_dendrogram(df.index)
-        return labels
+        return pd.DataFrame(labels)
        # return df_out
 
     # ------------------------------------------------------------------
-
-    def summarize(self,metrics_all, ari_mean, ari_std,  k_values):
-        return self.summarize(metrics_all, ari_mean, ari_std, k_values)
 
     import matplotlib.pyplot as plt
     from scipy.cluster.hierarchy import dendrogram

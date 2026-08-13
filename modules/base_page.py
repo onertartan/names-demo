@@ -128,7 +128,7 @@ class BasePage(ABC):
 
         random_states = range(st.session_state["number_of_seeds"]) if engine_class.__name__ != "HierarchicalClusteringEngine" else range(1)
 
-        num_seeds_to_plot = 3 if engine_class.__name__ != "HierarchicalClusteringEngine" else 1
+        num_seeds_to_plot = 3 if engine_class.__name__ != "HierarchicalBaseClusteringEngine" else 1
         year1 , year2 = st.session_state["year_1"], st.session_state["year_2"]
         saved_file_suffix = f"{scaler}_{year1}_{year2}"
         # CROSS-METHOD OPTIMAL K ANALYSIS
